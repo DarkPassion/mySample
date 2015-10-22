@@ -7,7 +7,7 @@ export PREBUILT=$NDK_ROOT/toolchains/arm-linux-androideabi-4.8/prebuilt
 
 export PLATFORM=$NDK_ROOT/platforms/android-8/arch-arm
 
-export PREFIX=`~/android-x26`
+export PREFIX=~/android-x264
 
 #echo $NDK_ROOT
 #echo $PREFIX
