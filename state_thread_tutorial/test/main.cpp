@@ -258,8 +258,8 @@ void TcpSvr::remove(TcpConn* conn)
     NetFdQueue::iterator iter = std::find(_queue.begin(), _queue.end(), conn);
     if (iter != _queue.end()) {
         _queue.erase(iter);
+        delete (*iter);
     }
-    delete (*iter);
 }
 
 
