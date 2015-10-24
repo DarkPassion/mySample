@@ -282,8 +282,6 @@ int main()
 
     while (1) {
         st_usleep(1000 * 100);
-
-        //printf("zhangzhifan test\n");
     }
     
     return 0;
