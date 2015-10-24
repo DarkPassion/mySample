@@ -1,0 +1,12 @@
+# README
+
+
+build.sh test on MAC
+1. chmod +x && ./build.sh
+
+
+2. CMake build project
+
+cmake . && make
+
+
