@@ -83,13 +83,17 @@ private:
     SrsUdpListener* listener;
 };
 
-
+/**
+ *   [16bit] length
+ *   [length] content 
+*/
 class TcpCli : public ITthreadHandle
 {
 
 public:
     TcpCli()
     {
+        _count = 0;
         _pth = new STThread("TcpCli", this,  100, false);
 
         _fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -109,8 +113,17 @@ public:
         _pth->start();
 
         char read_buff[256] = {0};
-        sprintf(read_buff, "helloworld!");
-        int n_write = st_write(_stfd, read_buff, strlen(read_buff), ST_UTIME_NO_TIMEOUT);
+
+        sprintf(read_buff + 2, "helloworld! %d", _count++);
+        int msg_len = strlen(read_buff + 2);
+        read_buff[0] = (msg_len >> 8) & 0xff;
+        read_buff[1] = (msg_len) & 0xff;
+
+        int n_write = st_write(_stfd, read_buff, msg_len + 2, ST_UTIME_NO_TIMEOUT);
+        printf("Cli: n_write [%d] msg[%s] \n", n_write, read_buff + 2);
+        n_write = st_write(_stfd, read_buff, msg_len + 2, ST_UTIME_NO_TIMEOUT);
+        printf("Cli: n_write [%d] msg[%s]\n", n_write, read_buff + 2);
+        
     }
 
     ~TcpCli()
@@ -127,20 +140,21 @@ public:
         const int read_time_out_ms = 3000 * 1000;
         const int write_time_out_ms = 3000 * 1000;
 
-        int n_read = st_read(_stfd, read_buff, 256, read_time_out_ms);
-        if (n_read == -1) {
-            _pth->stop_loop();
-            return -1;
-        }
-
-        int n_write = st_write(_stfd, read_buff, strlen(read_buff), write_time_out_ms);
+        //gets(read_buff);
+        sprintf(read_buff + 2, "helloworld! %d", _count++);
+        
+        int n_read = strlen(read_buff + 2);
+        read_buff[0] = (n_read >> 8) & 0xff;
+        read_buff[1] = (n_read) & 0xff;
+        
+        int n_write = st_write(_stfd, read_buff, n_read + 2, write_time_out_ms);
+        printf("Cli: n_write [%d] msg [%s]\n", n_write, read_buff + 2);
         if (n_write == -1) {
             _pth->stop_loop();
             return -1;
         } 
 
-        printf("cli : n_read [%d] n_write[%d]\n", n_read, n_write);
-        //st_usleep(1000 * 100);
+        st_usleep(1000 * 5000);
         return 0;
     }
 
@@ -155,6 +169,7 @@ private:
     STThread* _pth;
     int _fd;
     st_netfd_t _stfd;
+    int _count;
 };
 
 
@@ -177,6 +192,7 @@ private:
     NetFdQueue  _queue;
 };
 
+
 class TcpConn : public ITthreadHandle
 {
 public:
@@ -198,25 +214,90 @@ public:
 
     virtual int cycle()
     {
-
+        bool socket_err = false;
         char read_buff[256] = {0};
         int ccount = 0;
-        while(1) {
+       
+        int pkt_msg_len = -1;
+        int curr_msg_len = 0;
+        char* pkt_msg = NULL;
+        
+
+        while (1) {
             memset(read_buff, 0, sizeof(read_buff));
             int n_read = st_read(_stfd, read_buff, 256, ST_UTIME_NO_TIMEOUT);
-
-            int n_write = st_write(_stfd, read_buff, strlen(read_buff), ST_UTIME_NO_TIMEOUT);
-
-            printf("Svr: n_read [%d] n_write [%d] buff [%s]\n", n_read, n_write, read_buff);
-            ccount++;
-            if (ccount == 10) {
+            printf("Svr : n_read[%d] \n", n_read);
+            if (n_read == -1) {
+                socket_err = true;
                 break;
             }
+
+            int pos = 0;
+            while (1) {
+                if (pkt_msg_len == -1) {
+                    if (n_read  < 2) {
+                        break;
+                    }
+                    pkt_msg_len = 0;
+                    int16_t temp_len = read_buff[pos++];
+                    pkt_msg_len += temp_len << 8;
+                    temp_len = read_buff[pos++];
+                    pkt_msg_len += temp_len;
+
+                    if (pkt_msg_len < 1 || pkt_msg_len > 65535) {
+                        pkt_msg_len = -1;
+                        break;
+                    }
+
+                    printf(" Svr: pkt_msg_len [%d]\n", pkt_msg_len);
+                    pkt_msg = new char[pkt_msg_len];
+                    memset(pkt_msg, 0, pkt_msg_len);
+                }
+
+                int cpy_len = pkt_msg_len > n_read - pos ? n_read - pos : pkt_msg_len;
+                memcpy(pkt_msg, read_buff + pos, cpy_len);
+                curr_msg_len += cpy_len;
+                pos += cpy_len;
+            
+                printf("Svr : curr_msg_len [%d] pkt_msg_len[%d]\n", curr_msg_len, pkt_msg_len);
+
+                if (curr_msg_len == pkt_msg_len) {
+                    printf("Svr : pkt_msg_len[%d] msg[%s]\n", pkt_msg_len, pkt_msg + 2);
+                    int n_write = st_write(_stfd, pkt_msg, pkt_msg_len, ST_UTIME_NO_TIMEOUT);
+
+                    delete[] pkt_msg;
+                    pkt_msg = NULL;
+                    pkt_msg_len = -1;
+                    curr_msg_len = 0;
+
+                    if (n_write == -1) {
+                        break;
+                    }
+                }
+
+                if (pos == n_read) {
+                    printf("Svr: pos [%d]\n", pos);
+                    break;
+                }
+
+            }
+
+            
+
+
         }
+            
 
         _pth->stop_loop();
         return 0;
     }
+
+
+    virtual void on_message(char* msg, int len)
+    {
+
+    }
+
 
     virtual void on_thread_stop()
     {
@@ -267,6 +348,7 @@ void TcpSvr::remove(TcpConn* conn)
 
 int main()
 {
+
     st_init();
     // UdpServ serv;
 
@@ -282,6 +364,8 @@ int main()
 
     while (1) {
         st_usleep(1000 * 100);
+
+        //printf("zhangzhifan test\n");
     }
     
     return 0;
