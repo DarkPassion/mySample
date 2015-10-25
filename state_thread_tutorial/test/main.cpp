@@ -255,7 +255,7 @@ public:
                 }
 
                 int cpy_len = pkt_msg_len > n_read - pos ? n_read - pos : pkt_msg_len;
-                memcpy(pkt_msg, read_buff + pos, cpy_len);
+                memcpy(pkt_msg + curr_msg_len, read_buff + pos, cpy_len);
                 curr_msg_len += cpy_len;
                 pos += cpy_len;
             
