@@ -4,4 +4,6 @@ this is VS2010 project
 
 sample for Encode TCP Message && Decode TCP Message
 
-Msg.h Msg.cc
+g++  Msg.cc main.cc -o Message.out
+
+
