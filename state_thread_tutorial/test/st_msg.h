@@ -25,6 +25,8 @@ struct AVMsg
 class utility{
 public:
 	
+	// be care of char buff
+	// when encode char buff should use unsigned char buff, else will lost some data
 	static void write_int64(char* buff, int64_t val)
 	{
 		int32_t low = (val << 32) & 0xffffffff;
