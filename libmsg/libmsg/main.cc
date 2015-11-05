@@ -17,7 +17,7 @@ int main()
 	EncodeMsg::parse_message(0x123456, strlen(msg_array), msg_array, buff);
 
 	DecodeMsg de;
-	de.set_call_back(on_message);
+	// de.set_call_back(on_message);
 	for (int i = 0; i < strlen(msg_array) + 8; i++)
 	{
 		de.parse_data(1, &buff[i]);

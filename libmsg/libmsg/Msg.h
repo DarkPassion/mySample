@@ -1,7 +1,11 @@
 #ifndef _XX_MSG_H_
 #define _XX_MSG_H_
-#include <string>
+#include <vector>
+
+#ifdef _WIN32
 #include <stdint.h>
+#endif
+
 
 #define MAX_MSG_LEN		1000
 
@@ -21,6 +25,8 @@ struct AVMsg
 class utility{
 public:
 	
+	// be care of char buff
+	// when encode char buff should use unsigned char buff, else will lost some data
 	static void write_int64(char* buff, int64_t val)
 	{
 		int32_t low = (val << 32) & 0xffffffff;
@@ -44,23 +50,25 @@ public:
 
 	static void write_int32(char* buff, int32_t val)
 	{
-		buff[0] = (val >> 24) & 0xff;
-		buff[1] = (val >> 16) & 0xff;
-		buff[2] = (val >> 8) & 0xff;
-		buff[3] = (val) & 0xff;
+		unsigned char* ubuff = (unsigned char*)buff;
+		ubuff[0] = (val >> 24) & 0xff;
+		ubuff[1] = (val >> 16) & 0xff;
+		ubuff[2] = (val >> 8) & 0xff;
+		ubuff[3] = (val) & 0xff;
 	}
 
 	static int32_t read_int32(char*buff)
 	{
 		int32_t p = 0;
 		int32_t ret = 0;
-		p = buff[0];
+		unsigned char* ubuff = (unsigned char*)buff;
+		p = ubuff[0];
 		ret += p << 24;
-		p = buff[1];
+		p = ubuff[1];
 		ret += p << 16;
-		p = buff[2];
+		p = ubuff[2];
 		ret += p << 8;
-		p = buff[3];
+		p = ubuff[3];
 		ret += p;
 		return ret;
 
@@ -68,20 +76,22 @@ public:
 
 	static void write_int24(char* buff, int32_t val)
 	{
-		buff[0] = (val >> 16) & 0xff;
-		buff[1] = (val >> 8) & 0xff;
-		buff[2] = (val) & 0xff;
+		unsigned char* ubuff = (unsigned char*)buff;
+		ubuff[0] = (val >> 16) & 0xff;
+		ubuff[1] = (val >> 8) & 0xff;
+		ubuff[2] = (val) & 0xff;
 	}
 
 	static int32_t read_int24(char* buff)
 	{
 		int ret = 0;
 		int p = 0;
-		p = buff[0];
+		unsigned char* ubuff = (unsigned char*)buff;
+		p = ubuff[0];
 		ret += p << 16;
-		p = buff[1];
+		p = ubuff[1];
 		ret += p << 8;
-		p = buff[2];
+		p = ubuff[2];
 		ret += p;
 		return ret;
 		
@@ -89,18 +99,20 @@ public:
 
 	static void write_int16(char* buff, int16_t val)
 	{
-		buff[0] = (val >> 8) & 0xff;
-		buff[1] = (val ) & 0xff;
+		unsigned char* ubuff = (unsigned char*)buff;
+		ubuff[0] = (val >> 8) & 0xff;
+		ubuff[1] = (val ) & 0xff;
 	}
 
 	static int16_t read_int16(char* buff)
 	{
 		int16_t p = 0;
 		int16_t ret = 0;
+		unsigned char* ubuff = (unsigned char*)buff;
 
-		p = buff[0];
+		p = ubuff[0];
 		ret += p << 8;
-		p = buff[1];
+		p = ubuff[1];
 		ret += p ;
 		return ret;
 
@@ -108,12 +120,14 @@ public:
 
 	static void write_int8(char* buff, int8_t val)
 	{
-		buff[0] = val & 0xff;
+		unsigned char* ubuff = (unsigned char*)buff;
+		ubuff[0] = val & 0xff;
 	}
 
 	static int8_t read_int8(char* buff)
 	{
-		int8_t ret = buff[0];
+		unsigned char* ubuff = (unsigned char*)buff;
+		int8_t ret = ubuff[0];
 		return ret;
 	}
 
@@ -144,12 +158,21 @@ public:
 class EncodeMsg
 {
 public:
-	static bool parse_message(int type, int len, char* data, char* buff);
+	static bool parse_message(int type, int len, const char* data, char* buff);
 
 };
 
 
-typedef void (*pfun_on_message)(Message* msg);
+class ICodecMsg
+{
+
+public:
+	virtual ~ICodecMsg() {}
+
+	virtual void on_message(Message* msg) = 0;
+};
+
+
 class DecodeMsg
 {
 public:
@@ -161,14 +184,16 @@ public:
 
 	bool parse_data(int len, char* data);
 	
-	void set_call_back(pfun_on_message notify) { _on_notify = notify; }
+	void set_call_back(ICodecMsg* notify) { _on_notify = notify; }
 private:
 	void on_message(Message* msg);
 
 private:
-	std::string _data;
-	int			_len;
-	pfun_on_message _on_notify;
+	// here can use vector<char> instead of using std::string
+	typedef std::vector<char> DecodeBuff;
+	DecodeBuff _data;
+	// std::string _data;
+	ICodecMsg* _on_notify;
 };
 
 #endif
