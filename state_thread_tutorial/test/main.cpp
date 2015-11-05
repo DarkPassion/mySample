@@ -6,6 +6,7 @@
 #include <st_help.h>
 #include <st_udp.h>
 #include <st_tcp.h>
+#include <st_msg.h>
 #include <vector>
 
 
@@ -84,8 +85,8 @@ private:
 };
 
 /**
- *   [16bit] length
- *   [length] content 
+ st_msg.h
+  class Message
 */
 class TcpCli : public ITthreadHandle
 {
@@ -112,17 +113,19 @@ public:
 
         _pth->start();
 
-        char read_buff[256] = {0};
+       
+        char write_buff[256] = {0};
+        const char* write_msg = "helloworld!";
+        EncodeMsg::parse_message(1122, strlen(write_msg), write_msg, write_buff);
 
-        sprintf(read_buff + 2, "helloworld! %d", _count++);
-        int msg_len = strlen(read_buff + 2);
-        read_buff[0] = (msg_len >> 8) & 0xff;
-        read_buff[1] = (msg_len) & 0xff;
+        //DecodeMsg de;
+        //de.parse_data(strlen(write_msg) + 8, write_buff);
 
-        int n_write = st_write(_stfd, read_buff, msg_len + 2, ST_UTIME_NO_TIMEOUT);
-        printf("Cli: n_write [%d] msg[%s] \n", n_write, read_buff + 2);
-        n_write = st_write(_stfd, read_buff, msg_len + 2, ST_UTIME_NO_TIMEOUT);
-        printf("Cli: n_write [%d] msg[%s]\n", n_write, read_buff + 2);
+
+        int n_write = st_write(_stfd, write_buff, strlen(write_msg) + 4 + 4, ST_UTIME_NO_TIMEOUT);
+        printf("Cli: n_write [%d] msg[%s] \n", n_write, write_buff + 8);
+        n_write = st_write(_stfd, write_buff, strlen(write_msg) + 4 + 4, ST_UTIME_NO_TIMEOUT);
+        printf("Cli: n_write [%d] msg[%s]\n", n_write, write_buff + 8);
         
     }
 
@@ -141,14 +144,16 @@ public:
         const int write_time_out_ms = 3000 * 1000;
 
         //gets(read_buff);
-        sprintf(read_buff + 2, "helloworld! %d", _count++);
+        const char* write_msg = "helloworld1";
+        EncodeMsg::parse_message(4346, strlen(write_msg), write_msg, read_buff);
         
-        int n_read = strlen(read_buff + 2);
-        read_buff[0] = (n_read >> 8) & 0xff;
-        read_buff[1] = (n_read) & 0xff;
         
-        int n_write = st_write(_stfd, read_buff, n_read + 2, write_time_out_ms);
-        printf("Cli: n_write [%d] msg [%s]\n", n_write, read_buff + 2);
+        int n_write = st_write(_stfd, read_buff, strlen(write_msg) + 8, write_time_out_ms);
+
+        DecodeMsg de;
+        de.parse_data(strlen(write_msg) + 8, read_buff);
+
+        printf("Cli: n_write [%d] msg [%s]\n", n_write, read_buff + 8);
         if (n_write == -1) {
             _pth->stop_loop();
             return -1;
@@ -193,7 +198,7 @@ private:
 };
 
 
-class TcpConn : public ITthreadHandle
+class TcpConn : public ITthreadHandle, public ICodecMsg
 {
 public:
     TcpConn(st_netfd_t stfd, TcpSvr* svr)
@@ -212,81 +217,30 @@ public:
         srs_freep(_pth);
     }
 
+    virtual void on_message(Message* msg)
+    {
+
+        printf("Svr: on_message type [%d] len [%d] msg[%s]\n", msg->type, msg->len, msg->data);
+    }
+
     virtual int cycle()
     {
-        bool socket_err = false;
-        char read_buff[256] = {0};
-        int ccount = 0;
-       
-        int pkt_msg_len = -1;
-        int curr_msg_len = 0;
-        char* pkt_msg = NULL;
-        
 
+        char read_buff[256] = {0};
+        DecodeMsg de;
+        de.set_call_back(this);
         while (1) {
             memset(read_buff, 0, sizeof(read_buff));
-            int n_read = st_read(_stfd, read_buff, 256, ST_UTIME_NO_TIMEOUT);
-            printf("Svr : n_read[%d] \n", n_read);
+            int n_read = st_read(_stfd, read_buff, sizeof(read_buff), ST_UTIME_NO_TIMEOUT);
+            // printf("Svr: n_read[%d] \n", n_read);
+
             if (n_read == -1) {
-                socket_err = true;
                 break;
             }
 
-            int pos = 0;
-            while (1) {
-                if (pkt_msg_len == -1) {
-                    if (n_read  < 2) {
-                        break;
-                    }
-                    pkt_msg_len = 0;
-                    int16_t temp_len = read_buff[pos++];
-                    pkt_msg_len += temp_len << 8;
-                    temp_len = read_buff[pos++];
-                    pkt_msg_len += temp_len;
-
-                    if (pkt_msg_len < 1 || pkt_msg_len > 65535) {
-                        pkt_msg_len = -1;
-                        break;
-                    }
-
-                    printf(" Svr: pkt_msg_len [%d]\n", pkt_msg_len);
-                    pkt_msg = new char[pkt_msg_len];
-                    memset(pkt_msg, 0, pkt_msg_len);
-                }
-
-                int cpy_len = pkt_msg_len > n_read - pos ? n_read - pos : pkt_msg_len;
-                memcpy(pkt_msg + curr_msg_len, read_buff + pos, cpy_len);
-                curr_msg_len += cpy_len;
-                pos += cpy_len;
-            
-                printf("Svr : curr_msg_len [%d] pkt_msg_len[%d]\n", curr_msg_len, pkt_msg_len);
-
-                if (curr_msg_len == pkt_msg_len) {
-                    printf("Svr : pkt_msg_len[%d] msg[%s]\n", pkt_msg_len, pkt_msg + 2);
-                    int n_write = st_write(_stfd, pkt_msg, pkt_msg_len, ST_UTIME_NO_TIMEOUT);
-
-                    delete[] pkt_msg;
-                    pkt_msg = NULL;
-                    pkt_msg_len = -1;
-                    curr_msg_len = 0;
-
-                    if (n_write == -1) {
-                        break;
-                    }
-                }
-
-                if (pos == n_read) {
-                    printf("Svr: pos [%d]\n", pos);
-                    break;
-                }
-
-            }
-
-            
-
+            de.parse_data(n_read, read_buff);
 
         }
-            
 
         _pth->stop_loop();
         return 0;
