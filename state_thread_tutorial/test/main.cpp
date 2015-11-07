@@ -207,6 +207,7 @@ public:
         _stfd = stfd;
         _pth = new STThread("TcpConn", this,  100, false);
 
+        de.set_call_back(this);
         _pth->start();
     }
 
@@ -228,7 +229,6 @@ public:
 
         char read_buff[256] = {0};
         DecodeMsg de;
-        de.set_call_back(this);
         while (1) {
             memset(read_buff, 0, sizeof(read_buff));
             int n_read = st_read(_stfd, read_buff, sizeof(read_buff), ST_UTIME_NO_TIMEOUT);
@@ -246,13 +246,7 @@ public:
         return 0;
     }
 
-
-    virtual void on_message(char* msg, int len)
-    {
-
-    }
-
-
+    
     virtual void on_thread_stop()
     {
         _svr->remove(this);
