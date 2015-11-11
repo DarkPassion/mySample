@@ -1,0 +1,18 @@
+this is Android Speex lib
+
+Speex encode && decode && resample && AEC
+
+
+int frame_size = 1024;
+int filter_length = 1024*10;
+st = peex_echo_state_init(frame_size, filter_length);
+
+
+short * rec = new short[frame_size];
+short* play = new short[frame_size];
+short* out = new short[frame_size];
+
+speex_echo_cancellation(st, rec, play, out);
+
+
+
