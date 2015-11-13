@@ -74,7 +74,15 @@ bool DecodeMsg::parse_data(int len, char* data)
 	return true;
 }
 
+// make printf more comfortable
+// msg->data maybe not end with \0
+
 void DecodeMsg::on_message(Message* msg)
 {
-	printf("type [%d] len [%d] data[%s]\n", msg->type, msg->len, msg->data);
+	
+	char buff[256] = {0};
+
+	const int cpy_len = msg->len > 256 ? 256 : msg->len;
+	memcpy(buff, msg->data, cpy_len);
+	printf("type [%d] len [%d] data[%s]\n", msg->type, msg->len, buff);
 }
