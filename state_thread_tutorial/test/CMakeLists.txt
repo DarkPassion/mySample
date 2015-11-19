@@ -14,5 +14,5 @@ include_directories(/usr/local/include/ ${PROJECT_SOURCE_DIR}/../st-1.9/obj/ ${P
 set(CMAKE_CXX_FLAGS "-D_CONSOLE -g -DUSE_GNUTLS -Wall -O2 -D_CONSOLE -pipe -Wno-invalid-offsetof -fcheck-new  -D_REENTRANT")
 
 
-add_executable(myUdpTest${MYVER} main.cpp st_thread.cpp st_udp.cpp st_help.cpp st_tcp.cpp st_msg.cpp) 
+add_executable(myUdpTest${MYVER} main.cpp st_thread.cpp st_udp.cpp st_help.cpp st_tcp.cpp st_msg.cpp st_queue.cpp) 
 

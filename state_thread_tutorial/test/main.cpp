@@ -8,7 +8,7 @@
 #include <st_tcp.h>
 #include <st_msg.h>
 #include <vector>
-
+#include <st_queue.h>
 
 class UdpCli : public ITthreadHandle
 {
@@ -207,7 +207,6 @@ public:
         _stfd = stfd;
         _pth = new STThread("TcpConn", this,  100, false);
 
-        de.set_call_back(this);
         _pth->start();
     }
 
@@ -294,10 +293,82 @@ void TcpSvr::remove(TcpConn* conn)
 
 
 
+class TestQueuePush : public ITthreadHandle
+{
+public:
+
+    TestQueuePush(BolckQueue<int> * q)
+    {
+        _pth = new STThread("TestQueuePush", this, 0, false);
+        _pth->start();
+        _queue = q;
+    }
+
+    ~TestQueuePush()
+    {
+        _pth->stop();
+    }
+
+    virtual int cycle()
+    {
+        int i = 0;
+        while(_pth->can_loop()) {
+
+            _queue->push_back(i++); 
+            st_usleep(1000* 10);
+        }
+        return 0;
+    }
+
+private:
+    BolckQueue<int>* _queue;
+    STThread* _pth;
+};
+
+
+class TestQueuePop : public ITthreadHandle
+{
+
+public:
+    TestQueuePop(BolckQueue<int>* q)
+    {
+        _queue = q;
+        _pth = new STThread("TestQueuePop", this, 0, false);
+        _pth->start();
+    }
+
+    ~TestQueuePop()
+    {
+        _pth->stop();
+    }
+
+
+    virtual int cycle()
+    {
+        int i = 0;
+
+        while(_pth->can_loop()) {
+
+            _queue->pop_front();
+            st_usleep(1000 * 10);
+        }
+        return 0;
+    }
+private:
+    STThread*   _pth;
+    BolckQueue<int>* _queue;
+};
+
+
 int main()
 {
 
     st_init();
+
+    BolckQueue<int> q;
+
+    TestQueuePush tq1(&q);
+    TestQueuePop tq2(&q);
     // UdpServ serv;
 
     // serv.listen();
