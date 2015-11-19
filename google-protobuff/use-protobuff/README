@@ -1,0 +1,11 @@
+# REAME
+
+https://developers.google.com/protocol-buffers/
+
+1. https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.gz
+
+2. VS2010 projects build  protobuf-2.6.1/vsprojects/
+
+3. protoc.exe --cpp_out=. hello.proto
+
+4. new VS2010 project 
