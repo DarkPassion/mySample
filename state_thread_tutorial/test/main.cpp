@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <algorithm>
 #include <st_thread.h>
 #include <assert.h>
 #include <sys/socket.h>
@@ -140,7 +142,6 @@ public:
     virtual int cycle()
     {
         char read_buff[256] = {0};
-        const int read_time_out_ms = 3000 * 1000;
         const int write_time_out_ms = 3000 * 1000;
 
         //gets(read_buff);
@@ -314,8 +315,9 @@ public:
         int i = 0;
         while(_pth->can_loop()) {
 
+            printf("QPush --- %d\n", i);
             _queue->push_back(i++); 
-            st_usleep(1000* 10);
+            st_usleep(1000* 100);
         }
         return 0;
     }
@@ -349,8 +351,11 @@ public:
 
         while(_pth->can_loop()) {
 
-            _queue->pop_front();
-            st_usleep(1000 * 10);
+            //int i =  _queue->pop_front();
+			// this with timeout params
+			int i = _queue->pop_front(10);
+			printf("Qpop --- %d \n", i);
+            //st_usleep(1000 * 10);
         }
         return 0;
     }
@@ -367,8 +372,8 @@ int main()
 
     BolckQueue<int> q;
 
-    TestQueuePush tq1(&q);
-    TestQueuePop tq2(&q);
+    //TestQueuePush tq1(&q);
+    //TestQueuePop tq2(&q);
     // UdpServ serv;
 
     // serv.listen();

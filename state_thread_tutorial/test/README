@@ -1,5 +1,7 @@
 # README
 
+cmake test on linux
+
 
 build.sh test on MAC
 1. chmod +x && ./build.sh

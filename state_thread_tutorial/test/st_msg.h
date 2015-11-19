@@ -1,10 +1,9 @@
 #ifndef _XX_MSG_H_
 #define _XX_MSG_H_
 #include <vector>
+#include <string.h>
 
-#ifdef _WIN32
 #include <stdint.h>
-#endif
 
 
 #define MAX_MSG_LEN		1000

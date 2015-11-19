@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <stdio.h>
 #include <st_tcp.h>
 #include <srs_core.h>
 #include <st_help.h>
