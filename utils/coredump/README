@@ -1,0 +1,12 @@
+#
+#
+#  memcpy(void* dest, void* src, int len)
+#  拷贝内存越界
+#  
+#	delete (ptr)
+#	两次释放内存
+#
+#   delete (ptr)
+#	释放非堆上内存地址
+#
+
