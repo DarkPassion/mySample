@@ -20,11 +20,12 @@ LOCAL_SRC_FILES:= \
 	${LOCAL_PATH}/../librtmp/hashswf.c \
 	${LOCAL_PATH}/../librtmp/log.c \
 	${LOCAL_PATH}/../librtmp/parseurl.c \
-	${LOCAL_PATH}/../librtmp/rtmp.c
+	${LOCAL_PATH}/../librtmp/rtmp.c \
+	${LOCAL_PATH}/rtmp_conn.cpp
 
 
 
-LOCAL_CFLAGS += -I$(SSL)/include
+LOCAL_CFLAGS += -I$(SSL)/include -I${LOCAL_PATH}/../
 #LOCAL_LDLIBS += -L$(SSL)/libs/$(TARGET_ARCH_ABI)
 LOCAL_LDLIBS += -ldl -lz
 
