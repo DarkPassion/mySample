@@ -34,12 +34,15 @@ private:
 
 	void send_packet(unsigned char type, unsigned char* buff, int len, int timestamp);
 
+	int find_start_code(unsigned char* buff,  int len);
+
 private:
 	std::string _url;
 	RTMP*	_rtmp;
 	bool	_aac_conf_send;
 	bool	_avc_conf_send;
-	std::string _avc_conf;
+	std::string _sps;
+	std::string _pps;
 	std::string _aac_conf;
 
 

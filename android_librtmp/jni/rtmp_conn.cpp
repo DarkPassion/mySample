@@ -1,5 +1,12 @@
 #include "rtmp_conn.h"
 
+
+enum {
+	NAL_SLICE_IDR = 5,
+	NAL_SEI = 6,
+	NAL_SPS = 7,
+	NAL_PPS = 8,
+ };
 rtmp_conn::rtmp_conn()  : _rtmp(NULL), _aac_conf_send(false), _avc_conf_send(false)
 {
 
@@ -15,6 +22,14 @@ rtmp_conn::~rtmp_conn()
 		_rtmp = NULL;
 	}
 
+
+}
+
+void rtmp_conn::close()
+{
+	if (_rtmp && RTMP_IsConnected(_rtmp)) {
+		RTMP_Close(_rtmp);
+	}
 
 }
 
@@ -36,18 +51,81 @@ void rtmp_conn::send_h264(const unsigned char* buff, int len, int bkey, int time
 {
 
 	//  dont send any h264 packet until recv key frame to send avc conf
-	if (!_avc_conf_send) {
-		send_avc_config();
+
+
+	int i = 0;
+	while(i < len - 4) {
+
+		if (buff[i + 0] == 0x00 && buff[i + 1] == 0x00 && buff[i + 2] == 0x00 && buff[i + 3] == 0x1) {
+			i += 4;
+		} else if (buff[i + 0] == 0x00 && buff[i + 1] == 0x00 && buff[i + 2] == 0x01) {
+			i += 3;
+		} else {
+			break;
+		}
+
+		unsigned char type = buff[i] & 0x1f;
+
+		if (type == NAL_SPS) {
+			// sps
+			int sps_len = find_start_code(buff + i, len - i);
+
+			if (_sps.size() == 0) {
+				_sps.assign(buff + i, sps_len);
+			}
+			i += sps_len;
+
+		} else if (type == NAL_PPS) {
+			// pps
+
+			int pps_len = find_start_code(buff + i, len - i);
+
+			if (_pps.size() == 0) {
+				_pps.assign(buff + i, pps_len);
+			}
+			i += pps_len;
+
+			if (!_avc_conf_send) {
+				// send avc conf
+
+			}
+		} else if (type == NAL_SEI){
+			// sei
+			// ingore sei frame
+			int sei_len = find_start_code(buff + i, len - i);
+			i += sei_len;
+
+		} else {
+			if (_avc_conf_send) {
+				// send h264 packet
+				
+			}
+		}
+
 	}
-
-	if (!_avc_conf_send) {
-		return;
-	}
-
-
 
 }
 
+
+int rtmp_conn::find_start_code(unsigned char* buff,  int len)
+{
+	int r = 0;
+
+	int i = 0;
+	while(i < len) {
+		if (buff[i + 0] == 0x00 && buff[i + 1] == 0x00 && buff[i + 2] == 0x00 && buff[i + 3] == 0x01) {
+			r = i;
+			break;
+		} else if (buff[i + 0] == 0x00 && buff[i + 1] == 0x00 && buff[i + 2] == 0x01) {
+			r = i;
+			break;
+		} else {
+			i++;
+		}
+	}
+
+	return r;
+}
 
 void rtmp_conn::send_aac(const unsigned char* buff, int len, int timesamp)
 {
