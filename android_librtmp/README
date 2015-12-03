@@ -1,0 +1,16 @@
+
+
+
+  rtmpdump2.4
+  git clone git://git.ffmpeg.org/rtmpdump
+
+  openssl 
+  https://github.com/guardianproject/openssl-android.git
+
+  build openssl - android 
+
+  copy jni to source code
+
+
+
+
