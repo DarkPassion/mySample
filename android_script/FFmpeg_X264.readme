@@ -1,0 +1,31 @@
+
+ffmpeg decode video.mp4 to raw video
+
+ffmpeg -i video.mp4 -c:v rawvideo -pix_fmt yuv420p out.yuv
+
+
+X264 encode params
+
+https://sites.google.com/site/linuxencoding/x264-ffmpeg-mapping
+
+default --bframes 10
+Note that Baseline Profile, such as that used by iPods, does not support B-frames. Recommended default: 16
+
+x264 --level 40 --crf 24 --fps 15 --profile high --min-keyint 5 keyint 30 -o 1122.h264 out_768x320.yuv
+
+--bframes 0
+x264 --level 40 --crf 24 --fps 15 --profile high --min-keyint 5 --keyint 30 --bframes 0 -o 1123.h264 out_768x320.yuv
+
+--keyint 300
+x264 --level 40 --crf 24 --fps 15 --profile high --min-keyint 5 --keyint 300 --bframes 0 -o 1124.h264 out_768x320.yuv
+
+
+
+
+du -sh *
+
+1122.h264	11M
+1123.h264	13M
+1124.h264	12M
+
+

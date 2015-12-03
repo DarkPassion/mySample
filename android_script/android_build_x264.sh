@@ -17,6 +17,8 @@ PREFIX=$(pwd)/android-x264/arm32/
 --host=arm-linux \
 --cross-prefix=$PREBUILT/linux-x86_64/bin/arm-linux-androideabi- \
 --sysroot=$PLATFORM
+
+make && make install
 }
 
 
@@ -38,4 +40,11 @@ PREFIX=$(pwd)/android-x264/arm64/
 --cross-prefix=$PREBUILT/linux-x86_64/bin/aarch64-linux-android- \
 --sysroot=$PLATFORM
 
+make && make install
 }
+
+#build_arm32 
+
+#build_arm64
+
+
