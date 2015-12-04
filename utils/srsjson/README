@@ -1,8 +1,0 @@
-#
-# refrence https://github.com/ossrs/srs
-# Simple-RTMP-Server
-# json encode && json decode
-#
-# cmake . && make
-
-
