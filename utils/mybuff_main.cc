@@ -29,11 +29,13 @@ public:
 	void push_back(unsigned char* buff, int len)
 	{
 		int i = 0;
-
+#if 0
 		while(len > 0) {
 			_list.push_back(buff[i++]);
 			len--;
 		}
+#endif
+		_list.insert(_list.end(), buff, buff + len);
 	}
 
 
