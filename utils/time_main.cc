@@ -5,6 +5,8 @@
 
 #include <time.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <string>
 #include <assert.h>
 
@@ -80,7 +82,14 @@ int main()
     std::string cur_time = get_cur_time();
     printf("get_cur_time %s\n", cur_time.c_str());
 
-    return 0;
+
+	time_t time_t1;
+
+	time(&time_t1);
+
+	printf("time %u", time_t1);
+
+	return 0;
 }
 
 
