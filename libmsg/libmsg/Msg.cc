@@ -30,10 +30,15 @@ DecodeMsg::~DecodeMsg()
 
 bool DecodeMsg::parse_data(int len, char* data)
 {
+#if 0
 	for (int i = 0; i < len; i++)
 	{
 		_data.push_back(data[i]);
 	}
+#endif
+
+	// use vector insert
+	_data.insert(_data.end(), data, data + len);
 
 	while (1) {
 		if (_data.size() < 4 + 4) break;
