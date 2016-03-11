@@ -1,74 +1,119 @@
 #!/bin/sh
 
-DEST=~/ios_x264
-SDK_VERSION="9.0"
-echo "Building armv7"
+CONFIGURE_FLAGS="--enable-static --enable-pic --disable-cli"
 
-ARM="armv7"
-export CC=`xcodebuild -find clang`
-DEVPATH=/Applications/XCode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${SDK_VERSION}.sdk
+ARCHS="arm64 x86_64 i386 armv7 armv7s"
 
-echo $DEVPATH
+# directories
+SOURCE="x264-snapshot-20151231-2245"
+FAT="x264-iOS"
 
-./configure                     \
-    --host=arm-apple-darwin     \
-    --sysroot=$DEVPATH          \
-    --prefix=$DEST/$ARM         \
-    --extra-cflags="-arch $ARM" \
-    --extra-ldflags="-L$DEVPATH/usr/lib/system -arch $ARM" \
-    --enable-pic      \
-    --enable-static   \
-    --disable-asm
+SCRATCH="scratch-x264"
+# must be an absolute path
+THIN=`pwd`/"thin-x264"
 
-   make && make install && make clean
+# the one included in x264 does not work; specify full path to working one
+GAS_PREPROCESSOR=/usr/local/bin/gas-preprocessor.pl
 
-echo "Installed: $DEST/$ARM"
+COMPILE="y"
+LIPO="y"
+
+if [ "$*" ]
+then
+	if [ "$*" = "lipo" ]
+	then
+		# skip compile
+		COMPILE=
+	else
+		ARCHS="$*"
+		if [ $# -eq 1 ]
+		then
+			# skip lipo
+			LIPO=
+		fi
+	fi
+fi
+
+if [ "$COMPILE" ]
+then
+	CWD=`pwd`
+	for ARCH in $ARCHS
+	do
+		echo "building $ARCH..."
+		mkdir -p "$SCRATCH/$ARCH"
+		cd "$SCRATCH/$ARCH"
+		CFLAGS="-arch $ARCH"
+                ASFLAGS=
+
+		if [ "$ARCH" = "i386" -o "$ARCH" = "x86_64" ]
+		then
+		    PLATFORM="iPhoneSimulator"
+		    CPU=
+		    if [ "$ARCH" = "x86_64" ]
+		    then
+		    	CFLAGS="$CFLAGS -mios-simulator-version-min=7.0"
+		    	HOST=
+		    else
+		    	CFLAGS="$CFLAGS -mios-simulator-version-min=5.0"
+			HOST="--host=i386-apple-darwin"
+		    fi
+		else
+		    PLATFORM="iPhoneOS"
+		    if [ $ARCH = "arm64" ]
+		    then
+		        HOST="--host=aarch64-apple-darwin"
+			XARCH="-arch aarch64"
+		    else
+		        HOST="--host=arm-apple-darwin"
+			XARCH="-arch arm"
+		    fi
+                    CFLAGS="$CFLAGS -fembed-bitcode -mios-version-min=7.0"
+                    ASFLAGS="$CFLAGS"
+		fi
+
+		XCRUN_SDK=`echo $PLATFORM | tr '[:upper:]' '[:lower:]'`
+		CC="xcrun -sdk $XCRUN_SDK clang"
+		if [ $PLATFORM = "iPhoneOS" ]
+		then
+		    export AS="gas-preprocessor.pl $XARCH -- $CC"
+		else
+		    export -n AS
+		fi
+		CXXFLAGS="$CFLAGS"
+		LDFLAGS="$CFLAGS"
+
+		CC=$CC $CWD/$SOURCE/configure \
+		    $CONFIGURE_FLAGS \
+		    $HOST \
+		    --extra-cflags="$CFLAGS" \
+		    --extra-asflags="$ASFLAGS" \
+		    --extra-ldflags="$LDFLAGS" \
+		    --prefix="$THIN/$ARCH" || exit 1
+
+		mkdir extras
+		ln -s $GAS_PREPROCESSOR extras
+
+		make -j3 install || exit 1
+		cd $CWD
+	done
+fi
+
+if [ "$LIPO" ]
+then
+	echo "building fat binaries..."
+	mkdir -p $FAT/lib
+	set - $ARCHS
+	CWD=`pwd`
+	cd $THIN/$1/lib
+	for LIB in *.a
+	do
+		cd $CWD
+		lipo -create `find $THIN -name $LIB` -output $FAT/lib/$LIB
+	done
+
+	cd $CWD
+	cp -rf $THIN/$1/include $FAT
+fi
 
 
-echo "Building i386"
-
-SIM="i386"
-CC=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/gcc
-DEVPATH=/Applications/XCode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${SDK_VERSION}.sdk
-
-./configure                     \
-    --host=i386-apple-darwin    \
-     -sysroot=$DEVPATH          \
-    --prefix=$DEST/$SIM         \
-    --extra-cflags="-arch $SIM" \
-    --extra-ldflags="-L$DEVPATH/usr/lib/system -arch $SIM" \
-    --enable-pic    \
-    --enable-static \
-    --disable-asm
-
-    make && make install && make clean
-
-echo "Installed: $DEST/$SIM"
-
-
-echo "Combining library ......"
-BUILD_LIBS="libx264.a"
-OUTPUT_DIR="output"
-ARCHS="armv7 i386"
-
-cd install
-mkdir $OUTPUT_DIR
-mkdir $OUTPUT_DIR/lib
-mkdir $OUTPUT_DIR/include
-
-
-LIPO_CREATE=""
-
-for ARCH in $ARCHS; do
-    LIPO_CREATE="$LIPO_CREATE $ARCH/lib/$BUILD_LIBS "
-done
-
-lipo -create $LIPO_CREATE -output $OUTPUT_DIR/lib/$BUILD_LIBS
-cp -f $ARCH/include/*.* $OUTPUT_DIR/include/
-
-echo "************************************************************"
-lipo -i $OUTPUT_DIR/lib/$BUILD_LIBS
-echo "************************************************************"
-
-echo "OK, merge done!"
 
