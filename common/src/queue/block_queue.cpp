@@ -3,14 +3,14 @@
 #include "block_queue.h"
 
 template<class T>
-BlockQueue::BlockQueue()
+BlockQueue<T>::BlockQueue()
 {
     pthread_mutex_init(&_mutex, NULL);
     pthread_cond_init(&_cond, NULL);
 }
 
 template <class T>
-BlockQueue::~BlockQueue()
+BlockQueue<T>::~BlockQueue()
 {
     clear();
     pthread_cond_destroy(&_cond);
@@ -19,7 +19,7 @@ BlockQueue::~BlockQueue()
 
 
 template <class T>
-void BlockQueue::push_back(T* val)
+void BlockQueue<T>::push_back(T* val)
 {
     pthread_mutex_lock(&_mutex);
     
@@ -31,7 +31,7 @@ void BlockQueue::push_back(T* val)
 }
 
 template<class T>
-T* BlockQueue::pop_front()
+T* BlockQueue<T>::pop_front()
 {
     pthread_mutex_lock(&_mutex);
     T* val = NULL;
@@ -52,7 +52,7 @@ T* BlockQueue::pop_front()
 
 
 template<class T>
-void BlockQueue::clear()
+void BlockQueue<T>::clear()
 {
     pthread_mutex_lock(&_mutex);
     
@@ -69,7 +69,7 @@ void BlockQueue::clear()
 }
 
 template <class T>
-size_t BlockQueue::size()
+size_t BlockQueue<T>::size()
 {
     size_t s = 0;
     pthread_mutex_lock(&_mutex);

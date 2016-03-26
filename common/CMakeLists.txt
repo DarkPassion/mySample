@@ -16,7 +16,8 @@ set (LIB_SRC
 src/thread/thread.cpp
 src/thread/lock.cpp
 src/util/util.cpp
-src/queue/queue.cpp)
+src/queue/queue.cpp
+src/queue/block_queue.cpp)
 
 
 add_library(common${MYVER}
