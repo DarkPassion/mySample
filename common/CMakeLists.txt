@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 2.8)
 
-PROJECT(libcommon${MYVER})
+PROJECT(common${MYVER})
 set (CMAKE_BUILD_TYPE DEBUG)
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/libs/)
 
 link_directories(${PROJECT_BINARY_DIR}/bin/ /usr/local/lib/)
-link_libraries(libcommon${MYVER} pthread)  
+link_libraries(common${MYVER} pthread)  
 include_directories( ${PROJECT_SOURCE_DIR}/.
 ${PROJECT_SOURCE_DIR}/src)
 
@@ -19,7 +19,7 @@ src/util/util.cpp
 src/queue/queue.cpp)
 
 
-add_library(libcommon${MYVER}
+add_library(common${MYVER}
 ${LIB_SRC})
 
 
