@@ -58,6 +58,7 @@ int ThreadImp::start()
         return 0;
     }
     
+    _loop = 1;
     pthread_create(&_pth, NULL, thread_func, this);
     return 0;
 }
@@ -108,7 +109,7 @@ void ThreadImp::thread_cycle()
         }
         
         if (_interval_ms) {
-            usleep(_interval_ms);
+            usleep(_interval_ms * 1000);
         }
         
     }
