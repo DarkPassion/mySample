@@ -5,6 +5,8 @@
 #include "thread/thread.h"
 #include "thread/lock.h"
 
+
+// g++ thread.cpp -I../src/ -L../libs/ -lcommon -o thread.out
 class Thread1 : public ThreadHandle
 {
 public:

@@ -21,13 +21,12 @@ void CMutex::unlock()
 }
 
 
-AutoLock::AutoLock(ILock* lock)
+AutoLock::AutoLock(ILock& lock) : _lock(lock)
 {
-    _lock = lock;
-    _lock->lock();
+    _lock.lock();
 }
 
 AutoLock::~AutoLock()
 {
-    _lock->unlock();
+    _lock.unlock();
 }

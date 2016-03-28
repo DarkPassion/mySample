@@ -40,12 +40,12 @@ class AutoLock
 {
 
 public:
-    AutoLock(ILock* mutex);
+    AutoLock(ILock& mutex);
     
     ~AutoLock();
     
 private:
-    ILock*     _lock;
+    ILock&     _lock;
 
 };
 
