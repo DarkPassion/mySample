@@ -43,7 +43,7 @@ ThreadImp::ThreadImp(const char* name, ThreadHandle* handle, int interval_ms, in
     _name = name;
     _handle = handle;
     _interval_ms = interval_ms;
-    
+
     _loop = 0;
     _pth = 0;
     _joinable = joinable;
@@ -53,11 +53,12 @@ ThreadImp::ThreadImp(const char* name, ThreadHandle* handle, int interval_ms, in
 
 int ThreadImp::start()
 {
-    if (_pth) {
+    if (_pth)
+    {
         fprintf(stdout, "thread already run ! \n");
         return 0;
     }
-    
+
     _loop = 1;
     pthread_create(&_pth, NULL, thread_func, this);
     return 0;
@@ -66,9 +67,10 @@ int ThreadImp::start()
 int ThreadImp::stop()
 {
     _loop = 0;
-    
 
-    if (_joinable && _pth) {
+
+    if (_joinable && _pth)
+    {
         pthread_join(_pth, NULL);
     }
     return 0;
@@ -93,29 +95,34 @@ void ThreadImp::thread_cycle()
 
     assert(_handle);
     _handle->on_thread_start();
-    
-    while (_loop) {
-        
-        if (_handle->on_before_cycle() != 0) {
+
+    while (_loop)
+    {
+
+        if (_handle->on_before_cycle() != 0)
+        {
             break;
         }
-        
-        if (_handle->cycle() != 0) {
+
+        if (_handle->cycle() != 0)
+        {
             break;
         }
-        
-        if (_handle->on_end_cycle() != 0) {
+
+        if (_handle->on_end_cycle() != 0)
+        {
             break;
         }
-        
-        if (_interval_ms) {
+
+        if (_interval_ms)
+        {
             usleep(_interval_ms * 1000);
         }
-        
+
     }
-    
+
     _handle->on_thread_stop();
-    
+
 }
 
 int ThreadImp::can_loop()

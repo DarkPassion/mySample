@@ -14,17 +14,21 @@ Imp_AutoFree<T>::Imp_AutoFree(T** ptr, bool is_array)
 template <class T>
 Imp_AutoFree<T>::~Imp_AutoFree()
 {
-    if (_ptr == NULL || *_ptr == NULL) {
+    if (_ptr == NULL || *_ptr == NULL)
+    {
         return;
     }
 
-    if (_is_array) {
+    if (_is_array)
+    {
         delete[] *_ptr;
-    } else {
+    }
+    else
+    {
         delete *_ptr;
     }
-    
+
     *_ptr = NULL;
-    
+
 }
 

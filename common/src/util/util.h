@@ -33,10 +33,10 @@ class Imp_AutoFree
 private:
     T** _ptr;
     bool _is_array;
-    
+
 public:
     Imp_AutoFree(T** ptr, bool is_array);
-    
+
     ~Imp_AutoFree();
 };
 
