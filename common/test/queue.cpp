@@ -46,9 +46,8 @@ public:
         
         sitem* i = _q->pop_front();
         if (i) {
-            printf("Counsumer cycle [%p %d %d]\n", i, i->seq, i->id);
+            printf("Counsumer cycle [%p %d %d %zu]\n", i, i->seq, i->id, _q->size());
         }
-        //printf("ThreadConsumer cycle end ! [%d %d]\n", i->seq, i->id);
         freep(i);
         
         return 0;
