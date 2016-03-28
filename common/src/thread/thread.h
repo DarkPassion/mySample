@@ -55,6 +55,7 @@ private:
     pthread_t       _pth;
     int             _loop;
     int             _joinable;
+    int             _status;
 };
 
 

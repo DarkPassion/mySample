@@ -4,6 +4,12 @@
 #include <assert.h>
 #include "thread.h"
 
+enum ThreadStatus
+{
+    THREAD_INIT = 1,
+    THREAD_RUNING,
+    THREAD_STOP
+};
 
 ThreadHandle::ThreadHandle()
 {
@@ -47,9 +53,14 @@ ThreadImp::ThreadImp(const char* name, ThreadHandle* handle, int interval_ms, in
     _loop = 0;
     _pth = 0;
     _joinable = joinable;
+    _status = THREAD_INIT;
 
 }
 
+ThreadImp::~ThreadImp()
+{
+    stop();
+}
 
 int ThreadImp::start()
 {
@@ -66,6 +77,10 @@ int ThreadImp::start()
 
 int ThreadImp::stop()
 {
+    if (_status == THREAD_INIT)
+    {
+        return 0;
+    }
     _loop = 0;
 
 
@@ -73,6 +88,8 @@ int ThreadImp::stop()
     {
         pthread_join(_pth, NULL);
     }
+    _status = THREAD_INIT;
+
     return 0;
 }
 
@@ -96,6 +113,7 @@ void ThreadImp::thread_cycle()
     assert(_handle);
     _handle->on_thread_start();
 
+    _status = THREAD_RUNING;
     while (_loop)
     {
 
@@ -122,6 +140,7 @@ void ThreadImp::thread_cycle()
     }
 
     _handle->on_thread_stop();
+    _status = THREAD_STOP;
 
 }
 
