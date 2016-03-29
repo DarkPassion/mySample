@@ -50,21 +50,21 @@ std::string log::get_cur_sec()
 
 void log::write_log(int severity, const char* msg)
 {
-    const char *severity_str;
+    char severity_str[255] = {0};
 
     switch (severity)
     {
     case _CR_LOG_DEBUG:
-        severity_str = "Debug";
+        memcpy(severity_str, "Debug", strlen("Debug"));
         break;
     case _CR_LOG_INFO:
-        severity_str = "Info ";
+        memcpy(severity_str, "Info", strlen("Info"));
         break;
     case _CR_LOG_WARN:
-        severity_str = "Warn ";
+        memcpy(severity_str, "Warn", strlen("Warn"));
         break;
     case _CR_LOG_ERROR:
-        severity_str = "Error";
+        memcpy(severity_str, "Error", strlen("Error"));
         break;
     }
 
