@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <assert.h>
+
 #include "thread.h"
+#include "util/log.h"
 
 enum ThreadStatus
 {
@@ -46,7 +48,6 @@ int ThreadHandle::on_end_cycle()
 
 ThreadImp::ThreadImp(const char* name, ThreadHandle* handle, int interval_ms, int joinable)
 {
-    printf("ThreadImp [%s %p %d %d]\n", name, handle, interval_ms, joinable);
     _name = name;
     _handle = handle;
     _interval_ms = interval_ms;
@@ -67,7 +68,7 @@ int ThreadImp::start()
 {
     if (_pth)
     {
-        fprintf(stdout, "thread already run ! \n");
+        LOGW("thread already run ! \n");
         return 0;
     }
 
@@ -78,6 +79,7 @@ int ThreadImp::start()
 
 int ThreadImp::stop()
 {
+    LOGD("ThreadImp [%s %d %d] stop ! \n", _name, _interval_ms, _joinable);
     if (_status == THREAD_INIT)
     {
         return 0;
@@ -89,6 +91,13 @@ int ThreadImp::stop()
     {
         pthread_join(_pth, NULL);
     }
+
+    if (!_joinable && _pth)
+    {
+        pthread_detach(_pth);
+        LOGD("ThreadImp [%s] pthread_detach \n", _name);
+    }
+
     _status = THREAD_INIT;
 
     return 0;
@@ -110,6 +119,7 @@ void* ThreadImp::thread_func(void* param)
 
 void ThreadImp::thread_cycle()
 {
+    LOGD("ThreadImp thread cycle [%s]", _name);
 
     assert(_handle);
     _handle->on_thread_start();
@@ -140,9 +150,8 @@ void ThreadImp::thread_cycle()
 
     }
 
-    _handle->on_thread_stop();
     _status = THREAD_STOP;
-
+    _handle->on_thread_stop();
 }
 
 int ThreadImp::can_loop()

@@ -23,8 +23,9 @@ public:
         printf("thread1 deconstruct! \n");
         _pth->stop_loop();
         _pth->stop();
-        freep(_pth);
-
+        
+        // this delete maybe crash!!!
+        //freep(_pth);
     }
     
     
@@ -49,6 +50,10 @@ public:
     virtual void on_thread_stop()
     {
         printf("on thread stop ! \n");
+        
+        // here delete
+        freep(_pth);
+        delete this;
     }
     
     virtual int on_before_cycle()
@@ -78,7 +83,6 @@ int main()
     while (1) {
         printf("main thread1 create ! \n");
         Thread1* pth = new Thread1();
-        freep(pth);
         
         usleep(100 * 1000);
     }

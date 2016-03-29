@@ -10,6 +10,15 @@
 
 using namespace std;
 
+#define LOGD    log::cr_debug
+
+#define LOGI    log::cr_info
+
+#define LOGW    log::cr_warn
+
+#define LOGE    log::cr_error
+
+
 class log
 {
 public:
