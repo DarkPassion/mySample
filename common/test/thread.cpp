@@ -14,13 +14,17 @@ public:
     {
         printf("thread1 construct ! \n");
         
-        _pth = new ThreadImp("Thread1", this, 1000, true);
+        _pth = new ThreadImp("Thread1", this, 1000, false);
         _pth->start();
     }
     
     ~Thread1()
     {
         printf("thread1 deconstruct! \n");
+        _pth->stop_loop();
+        _pth->stop();
+        freep(_pth);
+
     }
     
     
@@ -31,10 +35,10 @@ public:
 //            printf("lopp === \n");
 //        }
         
-        AutoLock __lock(&_mutex);
-        printf("thread cycle end ! \n");
+        AutoLock __lock(_mutex);
+        printf("thread cycle  ! \n");
         
-        return 0;
+        return -1;
     }
     
     virtual void on_thread_start()
@@ -70,11 +74,12 @@ private:
 
 int main()
 {
-
-    Thread1* pth = new Thread1();
-    
     while (1) {
         usleep(100 * 1000);
+        
+        Thread1* pth = new Thread1();
+        
+        delete pth;
     }
     
 }

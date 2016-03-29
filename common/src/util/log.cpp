@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <string.h>
 #include <stdarg.h>         // va_list
 #include <sys/stat.h>       // mkdir
 #include <sstream>
@@ -79,7 +80,6 @@ void log::write_log(int severity, const char* msg)
 void log::cr_log(int severity, const char *fmt, va_list ap)
 {
     char buf[1024];
-    size_t len;
     if(fmt != NULL)
     {
         int buf_len = sizeof(buf);

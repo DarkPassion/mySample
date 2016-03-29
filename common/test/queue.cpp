@@ -104,6 +104,9 @@ public:
     ~ThreadProducer()
     {
         printf("ThreadProducer deconstruct! \n");
+        _pth->stop_loop();
+        _pth->stop();
+        freep(_pth);
     }
     
     
