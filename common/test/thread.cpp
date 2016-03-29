@@ -77,6 +77,7 @@ int main()
     while (1) {
         usleep(100 * 1000);
         
+        printf("main thread1 create ! \n");
         Thread1* pth = new Thread1();
         
         delete pth;
