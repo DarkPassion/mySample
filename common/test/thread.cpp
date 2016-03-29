@@ -14,7 +14,7 @@ public:
     {
         printf("thread1 construct ! \n");
         
-        _pth = new ThreadImp("Thread1", this, 1000, false);
+        _pth = new ThreadImp("Thread1", this, 1000, true);
         _pth->start();
     }
     
@@ -74,13 +74,13 @@ private:
 
 int main()
 {
+    
     while (1) {
-        usleep(100 * 1000);
-        
         printf("main thread1 create ! \n");
         Thread1* pth = new Thread1();
+        freep(pth);
         
-        delete pth;
+        usleep(100 * 1000);
     }
     
 }
