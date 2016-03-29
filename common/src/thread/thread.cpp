@@ -46,6 +46,7 @@ int ThreadHandle::on_end_cycle()
 
 ThreadImp::ThreadImp(const char* name, ThreadHandle* handle, int interval_ms, int joinable)
 {
+    printf("ThreadImp [%s %p %d %d]\n", name, handle, interval_ms, joinable);
     _name = name;
     _handle = handle;
     _interval_ms = interval_ms;
