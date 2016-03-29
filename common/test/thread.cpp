@@ -26,11 +26,6 @@ public:
     ~Thread1()
     {
         printf("thread1 deconstruct! \n");
-        _pth->stop_loop();
-        //_pth->stop();
-        
-        // this delete maybe crash!!!
-        //freep(_pth);
     }
     
     
