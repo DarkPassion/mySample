@@ -85,12 +85,17 @@ private:
 
 int main()
 {
-    
+    int max_num = 100* 10000; 
     while (1) {
-        printf("main thread1 create ! \n");
-        Thread1* pth = new Thread1();
-        
-        usleep(100 * 1000);
+        if(max_num-- < 1) {
+		usleep(100 * 1000);
+	} else {
+		printf("main thread1 create ! \n");
+        	Thread1* pth = new Thread1();
+
+	}
+
+	    
     }
     
 }
