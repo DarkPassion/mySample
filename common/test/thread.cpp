@@ -26,11 +26,11 @@ public:
     ~Thread1()
     {
         printf("thread1 deconstruct! \n");
-        //_pth->stop_loop();
+        _pth->stop_loop();
         //_pth->stop();
         
         // this delete maybe crash!!!
-        //freep(_pth);
+        freep(_pth);
     }
     
     
@@ -56,10 +56,6 @@ public:
     {
         stop_threads++;
         printf("on thread stop ! [%d %d]\n", start_threads, stop_threads);
-        
-        // here delete
-        freep(_pth);
-        delete this;
     }
     
     virtual int on_before_cycle()
@@ -85,14 +81,17 @@ private:
 
 int main()
 {
-    int max_num = 100* 10000; 
+    int index = 0;
     while (1) {
-        if(max_num-- < 1) {
-		usleep(100 * 1000);
-	} else {
-		printf("main thread1 create ! \n");
-        	Thread1* pth = new Thread1();
 
+	usleep(10 * 1000);
+	if (index <= 1000) {
+		index++;
+		printf("crate thread1 \n");
+		Thread1* pth = new Thread1();
+        delete pth;
+	} else {
+		
 	}
 
 	    
