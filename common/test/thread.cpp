@@ -30,7 +30,7 @@ public:
         //_pth->stop();
         
         // this delete maybe crash!!!
-        freep(_pth);
+        //freep(_pth);
     }
     
     
@@ -54,8 +54,10 @@ public:
     
     virtual void on_thread_stop()
     {
+        freep(_pth);
         stop_threads++;
         printf("on thread stop ! [%d %d]\n", start_threads, stop_threads);
+        delete this;
     }
     
     virtual int on_before_cycle()
@@ -81,20 +83,16 @@ private:
 
 int main()
 {
-    int index = 0;
-    while (1) {
+    while(1) {
+        for (int i = 0; i < 10; ++i)
+        {
+            /* code */
 
-	usleep(10 * 1000);
-	if (index <= 1000) {
-		index++;
-		printf("crate thread1 \n");
-		Thread1* pth = new Thread1();
-        delete pth;
-	} else {
-		
-	}
+            Thread1 * t = new Thread1;
 
-	    
+        }
+
+        usleep(500 * 1000); 
     }
-    
+
 }
