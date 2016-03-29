@@ -68,7 +68,7 @@ int ThreadImp::start()
 {
     if (_pth)
     {
-        LOGW("thread already run ! \n");
+        LOGW("thread already run !");
         return 0;
     }
 
@@ -79,7 +79,7 @@ int ThreadImp::start()
 
 int ThreadImp::stop()
 {
-    LOGD("ThreadImp [%s %d %d] stop ! \n", _name, _interval_ms, _joinable);
+    LOGD("ThreadImp [%s %d %d] stop !", _name, _interval_ms, _joinable);
     if (_status == THREAD_INIT)
     {
         return 0;
@@ -90,12 +90,13 @@ int ThreadImp::stop()
     if (_joinable && _pth)
     {
         pthread_join(_pth, NULL);
+        LOGD("ThreadImp [%s] pthread_join", _name);
     }
 
     if (!_joinable && _pth)
     {
         pthread_detach(_pth);
-        LOGD("ThreadImp [%s] pthread_detach \n", _name);
+        LOGD("ThreadImp [%s] pthread_detach", _name);
     }
 
     _status = THREAD_INIT;

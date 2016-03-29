@@ -7,6 +7,10 @@
 
 
 // g++ thread.cpp -I../src/ -L../libs/ -lcommon -o thread.out
+
+int start_threads = 0;
+int stop_threads = 0;
+
 class Thread1 : public ThreadHandle
 {
 public:
@@ -16,13 +20,14 @@ public:
         
         _pth = new ThreadImp("Thread1", this, 1000, true);
         _pth->start();
+        start_threads++;
     }
     
     ~Thread1()
     {
         printf("thread1 deconstruct! \n");
-        _pth->stop_loop();
-        _pth->stop();
+        //_pth->stop_loop();
+        //_pth->stop();
         
         // this delete maybe crash!!!
         //freep(_pth);
@@ -49,7 +54,8 @@ public:
     
     virtual void on_thread_stop()
     {
-        printf("on thread stop ! \n");
+        stop_threads++;
+        printf("on thread stop ! [%d %d]\n", start_threads, stop_threads);
         
         // here delete
         freep(_pth);
