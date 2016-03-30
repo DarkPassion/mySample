@@ -1,7 +1,6 @@
 #include <fstream>
 #include <iostream>
 #include <string.h>
-#include <stdarg.h>         // va_list
 #include <sys/stat.h>       // mkdir
 #include <sstream>
 #include <time.h>

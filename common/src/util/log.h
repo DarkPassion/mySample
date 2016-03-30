@@ -2,6 +2,7 @@
 #define _UTIL_LOG_H_
 
 #include <string>
+#include <stdarg.h>
 
 #define _CR_LOG_DEBUG 0
 #define _CR_LOG_INFO  1
