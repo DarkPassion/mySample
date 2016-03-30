@@ -18,7 +18,8 @@ src/thread/lock.cpp
 src/util/util.cpp
 src/util/log.cpp
 src/queue/queue.cpp
-src/queue/block_queue.cpp)
+src/queue/block_queue.cpp
+src/timer/timer.cpp)
 
 
 add_library(common${MYVER}
