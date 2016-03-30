@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <vector>
+#include <stdint.h>
+
 
 #include "thread/thread.h"
 #include "thread/lock.h"
@@ -18,7 +20,7 @@ public:
 
     virtual ~ITimerHandle();
 
-    virtual void onTime(int id) = 0;
+    virtual void on_time(int id) = 0;
 };
 
 
@@ -47,12 +49,9 @@ public:
 
 
 private:
-
-    void get_ticket();
-
-    void sort_queue();
-
-    static bool sort_func(stimer_t_0* ltimer, stimer_t_0* rtimer);
+    uint64_t get_tick_count();
+    
+    void tick();
 
     void clean_queue();
 

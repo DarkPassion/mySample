@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <assert.h>
-#include <stdint.h>
+#include <sys/time.h>
 #include "timer.h"
 #include "util/log.h"
 
@@ -56,13 +56,10 @@ void CTimer::start()
 
 int CTimer::cycle()
 {
-    while (_pth->can_loop())
-    {
-
-        get_ticket();
-
-        if (_precision)
-        {
+    while (_pth->can_loop()) {
+        tick();
+        
+        if (_precision) {
             usleep(_precision);
         }
     }
@@ -75,11 +72,30 @@ void CTimer::on_thread_stop()
     LOGD("CTimer on_thread_stop ");
 }
 
-void CTimer::get_ticket()
+void CTimer::tick()
 {
-
+    AutoLock __lock(_mutex);
+    uint64_t curr_timestamp = get_tick_count();
+    for (TypeQueue::iterator iter = _queue.begin(); iter != _queue.end(); iter++) {
+        stimer_t_0* t = *iter;
+        
+        if (curr_timestamp - t->last_timestamp > t->elapse) {
+            _handle->on_time(t->id);
+            t->last_timestamp = curr_timestamp;
+        }
+    }
 
 }
+
+uint64_t CTimer::get_tick_count()
+{
+    struct timeval val;
+    gettimeofday(&val, NULL);
+    
+    uint64_t t = val.tv_sec * 1000 + val.tv_usec / 1000;
+    return t;
+}
+
 
 void CTimer::clean_queue()
 {
@@ -107,6 +123,7 @@ void CTimer::set_timer(int id, int elapse)
         {
             // find old timer
             t->elapse = elapse;
+            t->last_timestamp = get_tick_count();
             bfind = 1;
             break;
         }
@@ -119,11 +136,10 @@ void CTimer::set_timer(int id, int elapse)
         stimer_t_0* t = new stimer_t_0;
         t->id = id;
         t->elapse = elapse;
+        t->last_timestamp = get_tick_count();
         _queue.push_back(t);
     }
 
-    // sort queue by elapse
-    sort_queue();
 }
 
 
@@ -141,15 +157,5 @@ void CTimer::kill_timer(int id)
             break;
         }
     }
-}
-
-bool CTimer::sort_func(stimer_t_0* ltimer, stimer_t_0* rtimer)
-{
-    return ltimer->elapse < rtimer->elapse;
-}
-
-void CTimer::sort_queue()
-{
-    std::sort(_queue.begin(), _queue.end(), CTimer::sort_func);
 }
 
