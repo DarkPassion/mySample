@@ -6,6 +6,17 @@
 
 // g++ timer.cpp -I../src/ -L../libs/ -lcommon -o timer.out
 
+
+int msSleep(long ms) {
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = ms;
+    return select(0, NULL, NULL, NULL, &tv);
+}
+
+
+
+
 class MyTimer : public ITimerHandle
 {
 
