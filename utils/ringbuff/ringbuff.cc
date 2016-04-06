@@ -4,13 +4,15 @@
 #include <stdio.h>
 #include <assert.h>
 
+// g++ ringbuff.cc -o0 -g -Wall -o ringbuff
 class ring_buff
 {
 
 public:
 	ring_buff() : _buff(NULL), _size(0), _write_pos(0), _read_pos(0)
 	{
-
+		_size = 32;
+		resize();
 	}
 
 
@@ -38,8 +40,12 @@ public:
 			r = _size - _write_pos + _read_pos;
 		} else if (_write_pos < _read_pos) {
 			r = _read_pos - _write_pos;
-		} else {
-			r = 0;
+		} else if (_write_pos == _read_pos){
+			if (_read_pos == 0) {
+				r = _size;
+			} else {
+				r = 0;
+			}
 		}
 
 		return r;
@@ -49,22 +55,33 @@ public:
 	void push_back(char* data, int len)
 	{
 		int l = left_size();
-		if (l < len) {
-			int s = _size * 2 > len + _size ? _size * 2 : len + _size;
-			resize(s);
-			memcpy(_buff + _write_pos, data, len);
-			_write_pos += len;
-			assert(_write_pos <= _size);
-		} else {
-			memcpy(_buff + _write_pos, data, len);
-			_write_pos += len;
-			assert(_write_pos <= _size);
+		printf(" push_back [%d %d %d %d %d]\n", l, len, _size, _write_pos, _read_pos);
+
+		if (l < len)
+		{
+			resize();
 		}
 
+		if (_write_pos + len <= _size)
+		{
+			/* code */
+			memcpy(_buff + _write_pos, data, len);
+			_write_pos += len;
+			assert(_write_pos <= _size);
+		} else
+		{
+			int n1 = _size - _write_pos;
+			memcpy(_buff + _write_pos, data, n1);
+			memcpy(_buff, data + n1, len - n1);
+			_write_pos = len -n1;
+			assert(_write_pos <= _size);
+			assert(_write_pos <= _read_pos);
+		}
 	}
 
 	char* pop_front(int len)
 	{
+		printf(" pop_front [%d %d %d ]\n", _size, _write_pos, _read_pos);
 		int n_read = 0;
 
 		if (_write_pos == _read_pos) {
@@ -105,12 +122,10 @@ public:
 	}
 
 
-	void resize(int len)
+	void resize()
 	{
-		if (len < _size) {
-			return;
-		}
 
+		int len = _size * 2;
 		char* tmp = new char[len];
 		memset(tmp, 0, len);
 
@@ -154,15 +169,35 @@ int main()
 
 	ring_buff buff;
 
+	printf("ring buffer s %d \n", buff.left_size());
 	char foo[10] = {0};
 	const char* pfo = "hello ";
 	sprintf(foo, pfo, strlen(pfo));
-	for (int i = 0; i < 10; i++) {
+	const int cc = 10;
+	for (int i = 0; i < cc; i++) {
 		buff.push_back(foo, strlen(foo));
+		printf("push back\n");
 	}
 	
-	printf("total write == %lu \n", strlen(pfo) * 10);
+	printf("total write == %lu \n", strlen(pfo) * cc);
 
+	printf("ring buffer s %d \n", buff.left_size());
+
+	for (int i = 0; i < 2; ++i)
+	{
+		char* temp_ptr = buff.pop_front(7);
+		char temp_ff[11] = {0};
+		memcpy(temp_ff, temp_ptr, 7);
+		delete[] temp_ptr;
+		printf(" pop front ptr ---- %s ---- n %d \n", temp_ff, i);
+	}
+
+	for (int i = 0; i < cc; i++) {
+		buff.push_back(foo, strlen(foo));
+		printf("push back \n");
+	}
+
+	
 	int n = 0;
 	while(1) {
 		char* ptr = buff.pop_front(7);
@@ -172,8 +207,10 @@ int main()
 		n++;
 		char ff[10] = {0};
 		memcpy(ff, ptr, 7);
-		printf(" ptr -- %s   --- n %d \n", ff, n);
+		printf(" pop front ptr -- %s   --- n %d \n", ff, n);
 		delete[] ptr;
 	}
+
+	printf("ring buffer s %d \n", buff.left_size());
 	return 0;
 }
