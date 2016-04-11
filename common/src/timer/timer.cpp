@@ -79,7 +79,7 @@ void CTimer::tick()
     for (TypeQueue::iterator iter = _queue.begin(); iter != _queue.end(); iter++) {
         stimer_t_0* t = *iter;
         
-        if (curr_timestamp - t->last_timestamp > t->elapse) {
+        if (curr_timestamp - t->last_timestamp > (uint64_t)t->elapse) {
             _handle->on_time(t->id);
             t->last_timestamp = curr_timestamp;
         }
