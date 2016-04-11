@@ -29,7 +29,7 @@ public:
 
     virtual void unlock();
 
-    disable_default_copy(CMutex);
+    DISALLOW_COPY_AND_ASSIGN(CMutex);
 private:
     pthread_mutex_t _mutex;
 };
