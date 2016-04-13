@@ -55,6 +55,7 @@ class Imp_AutoFree
 private:
     T** _ptr;
     bool _is_array;
+    DISALLOW_COPY_AND_ASSIGN(Imp_AutoFree);
 
 public:
     Imp_AutoFree(T** ptr, bool is_array)
@@ -97,6 +98,7 @@ class scope_ptr
 private:
     T** _ptr;
 
+    DISALLOW_COPY_AND_ASSIGN(scope_ptr);
 public:
     scope_ptr(T** ptr)
     {
@@ -118,6 +120,7 @@ class scope_ptr<T[]>
 {
 private:
     T** _ptr;
+    DISALLOW_COPY_AND_ASSIGN(scope_ptr);
 
 public:
     scope_ptr(T** ptr)
@@ -143,7 +146,8 @@ class scope_ptr_c
 {
 private:
     void**  _ptr;
-
+    DISALLOW_COPY_AND_ASSIGN(scope_ptr_c);
+    
 public:
     scope_ptr_c(T** ptr)
     {
