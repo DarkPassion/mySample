@@ -2,6 +2,7 @@
 #ifndef _UTIL_UTIL_H_
 #define _UTIL_UTIL_H_
 
+#include <stdlib.h>  // NULL
 
 
 // Undefine macros first, just in case. Some third-party includes have their own
@@ -56,11 +57,109 @@ private:
     bool _is_array;
 
 public:
-    Imp_AutoFree(T** ptr, bool is_array);
+    Imp_AutoFree(T** ptr, bool is_array)
+    {
+        _ptr = ptr;
+        _is_array = is_array;
+    }
 
-    ~Imp_AutoFree();
+    ~Imp_AutoFree()
+    {
+        if (_ptr == NULL || *_ptr == NULL)
+        {
+            /* code */
+            return;
+        }
+
+         if (_is_array)
+        {
+            delete[] *_ptr;
+        }
+        else
+        {
+            delete *_ptr;
+        }
+
+        *_ptr = NULL;
+    }
 };
 
+
+
+#define AutoFreeClass(cls, val) Imp_AutoFree<cls> __Imp_AutoFree##val(&val, false)
+#define AutoFreeClassA(cls, val) Imp_AutoFree<cls> __Imp_AutoFree##valA(&val, true)
+
+
+
+template <class T>
+class scope_ptr
+{
+private:
+    T** _ptr;
+
+public:
+    scope_ptr(T** ptr)
+    {
+        _ptr = ptr;
+    }
+
+    ~scope_ptr()
+    {
+        if (_ptr && *_ptr)
+        {
+            delete *_ptr;
+            *_ptr = NULL;
+        }
+    }
+};
+
+template <class T>
+class scope_ptr<T[]> 
+{
+private:
+    T** _ptr;
+
+public:
+    scope_ptr(T** ptr)
+    {
+        _ptr = ptr;
+    }
+
+    ~scope_ptr()
+    {
+        if (_ptr && *_ptr)
+        {
+            delete[] *_ptr;
+            *_ptr = NULL;
+        }
+    }
+};
+
+#define AutoDeleteScopePtr(cls, val) scope_ptr<cls> scope_ptr##val(&val)
+
+
+class scope_ptr_c
+{
+private:
+    void**  _ptr;
+
+public:
+    scope_ptr_c(void** ptr)
+    {
+        _ptr = ptr;
+    }
+
+    ~scope_ptr_c()
+    {
+        if (_ptr && *_ptr)
+        {
+            free(*_ptr);
+            *_ptr = NULL;
+        }
+    }
+};
+
+#define AutoFreeScopePtr(val) scope_ptr_c   scope_ptr_c##val(&val)
 
 
 #endif
