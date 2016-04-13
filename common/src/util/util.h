@@ -138,15 +138,16 @@ public:
 #define AutoDeleteScopePtr(cls, val) scope_ptr<cls> scope_ptr##val(&val)
 
 
+template <class T>
 class scope_ptr_c
 {
 private:
     void**  _ptr;
 
 public:
-    scope_ptr_c(void** ptr)
+    scope_ptr_c(T** ptr)
     {
-        _ptr = ptr;
+        _ptr = (void**)ptr;
     }
 
     ~scope_ptr_c()
@@ -159,7 +160,7 @@ public:
     }
 };
 
-#define AutoFreeScopePtr(val) scope_ptr_c   scope_ptr_c##val(&val)
+#define AutoFreeScopePtr(cls, val) scope_ptr_c<cls> scope_ptr_c##val(&val)
 
 
 #endif
