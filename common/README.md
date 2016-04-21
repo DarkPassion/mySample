@@ -71,3 +71,28 @@ if(i) delete i;
 ```
 
 
+### util
+```C++
+
+struct obj0_t
+{
+	int id;
+	int inc;
+	int seq;
+};
+
+// auto free tmp
+char* tmp = new char[100];
+AutoFreeClassA(char, tmp);
+
+// auto free tmp1
+char* tmp1 = new char;
+AutoFreeClass(char, tmp1);
+
+// auto delete obj0
+obj0_t * obj0 = new obj0_t;
+AutoFreeClass(obj0_t, obj0);
+
+
+```
+
