@@ -93,6 +93,13 @@ AutoFreeClass(char, tmp1);
 obj0_t * obj0 = new obj0_t;
 AutoFreeClass(obj0_t, obj0);
 
+// auto delete[] obja
+obj0_t* obja = new obj0_t[10];
+AutoDeleteScopePtr(obj0_t[], obja);
+
+// auto free aa1
+char* aa1 = (char*)malloc(100);
+AutoFreeScopePtr(char, aa1);
 
 ```
 
