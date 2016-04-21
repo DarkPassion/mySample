@@ -19,6 +19,16 @@ rtmpdump && openssl && Android.mk
 
 ffmpeg && h264
 
+## common lib
+this common library !
+
+## mylua
+this is leaning lua source code!
+
+## google-protobuf
+[github google-protobuf] (https://github.com/google/protobuf)
+this is leaning protobuf
+
 ## android_speex
 
 andorid build speex
@@ -28,9 +38,8 @@ andorid build speex
 encode msg && decode msg
 
 
-###
 
-this is my samples
+### this is my samples
 
 
 
