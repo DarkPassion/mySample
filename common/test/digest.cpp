@@ -6,6 +6,7 @@
 
 #include "digest/crc32.h"
 #include "digest/md5.h"
+#include "digest/base64.h"
 #include "string/stringencode.h"
 
 
@@ -14,11 +15,14 @@
 
 
 using namespace rtc;
+using std::min;
+using std::max;
 
 void test_crc32_func();
 
 void test_md5_func();
 
+void test_base64_func();
 
 void test_crc32_func()
 {
@@ -100,12 +104,58 @@ void test_md5_func()
 
 }
 
+
+
+
+size_t Base64Escape(const unsigned char *src, size_t szsrc, char *dest,
+                    size_t szdest) {
+    std::string escaped;
+    Base64::EncodeFromArray((const char *)src, szsrc, &escaped);
+    memcpy(dest, escaped.data(), min(escaped.size(), szdest));
+    return escaped.size();
+}
+
+size_t Base64Unescape(const char *src, size_t szsrc, char *dest,
+                      size_t szdest) {
+    std::string unescaped;
+    Base64::DecodeFromArray(src, szsrc, Base64::DO_LAX, &unescaped, NULL);
+    memcpy(dest, unescaped.data(), min(unescaped.size(), szdest));
+    return unescaped.size();
+}
+
+
+// { 1, "\000", "AA==" }
+void test_base64_func()
+{
+    const char* input = "\000";
+    const char* output ="AA==";
+    
+    char outbuff[1024] = {0};
+    int len = Base64Escape((const unsigned char *)input, 1, outbuff, sizeof(outbuff));
+    
+    if (memcmp(outbuff, output, len) == 0) {
+        printf("base64 test SUCC!\n");
+    }
+    
+    
+    const char* input2 = "message digest!";
+    char tmp[1024] = {0};
+    memset(outbuff, 0, sizeof(outbuff));
+    len = Base64Escape((const unsigned char*)input2, strlen(input2), tmp, sizeof(tmp));
+    len = Base64Unescape(tmp, len, outbuff, sizeof(outbuff));
+    
+    if (memcmp(input2, outbuff, len) == 0) {
+        printf("base64 test SUCC! [%s]\n", tmp);
+    }
+    
+}
+
 int main()
 {
 
     test_md5_func();
     test_crc32_func();
-    
+    test_base64_func();
 
     return 0;
 }

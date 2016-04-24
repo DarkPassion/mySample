@@ -102,13 +102,20 @@ typedef signed char int8;
 
 // The following only works for C++
 #ifdef __cplusplus
-namespace rtc {
-  template<class T> inline T _min(T a, T b) { return (a > b) ? b : a; }
-  template<class T> inline T _max(T a, T b) { return (a < b) ? b : a; }
+namespace rtc
+{
+template<class T> inline T _min(T a, T b)
+{
+    return (a > b) ? b : a;
+}
+template<class T> inline T _max(T a, T b)
+{
+    return (a < b) ? b : a;
+}
 
-  // For wait functions that take a number of milliseconds, kForever indicates
-  // unlimited time.
-  const int kForever = -1;
+// For wait functions that take a number of milliseconds, kForever indicates
+// unlimited time.
+const int kForever = -1;
 }
 
 #define ALIGNP(p, t) \

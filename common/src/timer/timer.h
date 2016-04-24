@@ -50,7 +50,7 @@ public:
 
 private:
     uint64_t get_tick_count();
-    
+
     void tick();
 
     void clean_queue();

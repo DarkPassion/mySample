@@ -16,6 +16,7 @@ set (LIB_SRC
 src/string/stringutils.cpp
 src/string/stringencode.cpp
 src/digest/md5.cpp
+src/digest/base64.cpp
 src/digest/crc32.cpp 
 src/thread/thread.cpp
 src/thread/lock.cpp

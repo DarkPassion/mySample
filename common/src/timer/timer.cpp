@@ -56,10 +56,12 @@ void CTimer::start()
 
 int CTimer::cycle()
 {
-    while (_pth->can_loop()) {
+    while (_pth->can_loop())
+    {
         tick();
-        
-        if (_precision) {
+
+        if (_precision)
+        {
             usleep(_precision);
         }
     }
@@ -76,10 +78,12 @@ void CTimer::tick()
 {
     AutoLock __lock(_mutex);
     uint64_t curr_timestamp = get_tick_count();
-    for (TypeQueue::iterator iter = _queue.begin(); iter != _queue.end(); iter++) {
+    for (TypeQueue::iterator iter = _queue.begin(); iter != _queue.end(); iter++)
+    {
         stimer_t_0* t = *iter;
-        
-        if (curr_timestamp - t->last_timestamp > (uint64_t)t->elapse) {
+
+        if (curr_timestamp - t->last_timestamp > (uint64_t)t->elapse)
+        {
             _handle->on_time(t->id);
             t->last_timestamp = curr_timestamp;
         }
@@ -91,7 +95,7 @@ uint64_t CTimer::get_tick_count()
 {
     struct timeval val;
     gettimeofday(&val, NULL);
-    
+
     uint64_t t = val.tv_sec * 1000 + val.tv_usec / 1000;
     return t;
 }

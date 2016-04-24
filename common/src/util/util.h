@@ -72,7 +72,7 @@ public:
             return;
         }
 
-         if (_is_array)
+        if (_is_array)
         {
             delete[] *_ptr;
         }
@@ -116,7 +116,7 @@ public:
 };
 
 template <class T>
-class scope_ptr<T[]> 
+class scope_ptr<T[]>
 {
 private:
     T** _ptr;
@@ -147,7 +147,7 @@ class scope_ptr_c
 private:
     void**  _ptr;
     DISALLOW_COPY_AND_ASSIGN(scope_ptr_c);
-    
+
 public:
     scope_ptr_c(T** ptr)
     {
