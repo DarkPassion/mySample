@@ -6,7 +6,7 @@
 #include "thread/lock.h"
 
 
-// g++ thread.cpp -I../src/ -L../libs/ -lcommon -o thread.out
+// g++ thread.cpp -I../include/ -L../libs/ -lcommon -o thread.out
 
 int start_threads = 0;
 int stop_threads = 0;

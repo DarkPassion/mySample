@@ -10,7 +10,7 @@
 #include "string/stringencode.h"
 
 
-// g++ digest.cpp -I../src/ -L../libs/ -lcommon -o digest.out
+// g++ digest.cpp -I../include/ -L../libs/ -lcommon -o digest.out
 
 
 

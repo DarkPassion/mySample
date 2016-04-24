@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "util/util.h"
 
-// g++ util.cpp -I../src/ -L../libs/ -lcommon -o util.out
+// g++ util.cpp -I../include/ -L../libs/ -lcommon -o util.out
 // valgrind --tool=memcheck --leak-check=full ./util.out
 
 void test_util();

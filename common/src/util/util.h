@@ -48,50 +48,6 @@ DISALLOW_EVIL_CONSTRUCTORS(TypeName)
         pa = NULL; \
     }
 
-
-template <class T>
-class Imp_AutoFree
-{
-private:
-    T** _ptr;
-    bool _is_array;
-    DISALLOW_COPY_AND_ASSIGN(Imp_AutoFree);
-
-public:
-    Imp_AutoFree(T** ptr, bool is_array)
-    {
-        _ptr = ptr;
-        _is_array = is_array;
-    }
-
-    ~Imp_AutoFree()
-    {
-        if (_ptr == NULL || *_ptr == NULL)
-        {
-            /* code */
-            return;
-        }
-
-        if (_is_array)
-        {
-            delete[] *_ptr;
-        }
-        else
-        {
-            delete *_ptr;
-        }
-
-        *_ptr = NULL;
-    }
-};
-
-
-
-#define AutoFreeClass(cls, val) Imp_AutoFree<cls> __Imp_AutoFree##val(&val, false)
-#define AutoFreeClassA(cls, val) Imp_AutoFree<cls> __Imp_AutoFree##valA(&val, true)
-
-
-
 template <class T>
 class scope_ptr
 {

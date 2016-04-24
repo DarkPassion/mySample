@@ -4,7 +4,7 @@
 #include <assert.h>
 #include "util/bytebuffer.h"
 
-// g++ byte_buffer.cpp -I../src/ -L../libs/ -lcommon -o byte_buffer.out
+// g++ byte_buffer.cpp -I../include/ -L../libs/ -lcommon -o byte_buffer.out
 
 using namespace rtc;
 

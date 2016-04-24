@@ -8,7 +8,7 @@
 #include "util/util.h"
 #include "queue/queue.h"
 
-// g++ queue.cpp -I../src/ -L../libs/ -lcommon -o queue.out
+// g++ queue.cpp -I../include/ -L../libs/ -lcommon -o queue.out
 
 
 struct sitem

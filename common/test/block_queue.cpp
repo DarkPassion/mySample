@@ -5,7 +5,7 @@
 #include <thread/thread.h>
 
 
-// g++ block_queue.cpp -I../src/ -L../libs/ -lcommon -o block_queue.out
+// g++ block_queue.cpp -I../include/ -L../libs/ -lcommon -o block_queue.out
 
 struct sitem
 {

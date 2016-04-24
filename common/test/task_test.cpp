@@ -3,7 +3,7 @@
 
 #include "task.h"
 
-// g++ task_test.cpp -g -Wall -O2 -o task_test
+// g++ task_test.cpp -I../include/ -L../libs/ -lcommon -o task_test.out
 
 
 

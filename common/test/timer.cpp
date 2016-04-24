@@ -4,7 +4,7 @@
 #include "timer/timer.h"
 
 
-// g++ timer.cpp -I../src/ -L../libs/ -lcommon -o timer.out
+// g++ timer.cpp -I../include/ -L../libs/ -lcommon -o timer.out
 
 
 int msSleep(long ms) {
