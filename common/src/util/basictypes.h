@@ -69,6 +69,10 @@ typedef signed char int8;
 #endif  // INT_TYPES_DEFINED
 
 
+// ARRAY_SIZE
+#define ARRAY_SIZE(x) (static_cast<int>(sizeof(x) / sizeof(x[0])))
+
+
 // Detect compiler is for x86 or x64.
 #if defined(__x86_64__) || defined(_M_X64) || \
     defined(__i386__) || defined(_M_IX86)

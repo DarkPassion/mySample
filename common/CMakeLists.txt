@@ -5,14 +5,18 @@ set (CMAKE_BUILD_TYPE DEBUG)
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/libs/)
 
-link_directories(${PROJECT_BINARY_DIR}/bin/ /usr/local/lib/)
-link_libraries(common${MYVER} pthread)  
+link_directories(${PROJECT_BINARY_DIR}/bin/ /usr/local/lib/ ${PROJECT_BINARY_DIR}/3rd/jsoncpp/lib)
+link_libraries(common${MYVER} pthread jsoncpp)
 include_directories( ${PROJECT_SOURCE_DIR}/.
 ${PROJECT_SOURCE_DIR}/src)
 
-set(CMAKE_CXX_FLAGS "-D_CONSOLE -g -DUSE_GNUTLS -Wall -O2 -D_CONSOLE -pipe -Wno-invalid-offsetof -fcheck-new -D_POSIX_THREADS -D_POSIX_THREAD_SAFE_FUNCTIONS -D_REENTRANT")
+set(CMAKE_CXX_FLAGS "-DWEBRTC_POSIX -g -DUSE_GNUTLS -Wall -O2 -D_CONSOLE -pipe -Wno-invalid-offsetof -fcheck-new -D_REENTRANT")
 
-set (LIB_SRC 
+set (LIB_SRC
+src/string/stringutils.cpp
+src/string/stringencode.cpp
+src/digest/md5.cpp
+src/digest/crc32.cpp 
 src/thread/thread.cpp
 src/thread/lock.cpp
 src/util/util.cpp
