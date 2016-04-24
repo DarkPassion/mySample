@@ -39,7 +39,6 @@ int recv_timeout(int s, char* buff, int len, int timeout)
 }
 
 
-
 /*
 ** packi16() -- store a 16-bit int into a char buffer (like htons())
 */ 
@@ -158,6 +157,8 @@ unsigned long long int unpacku64(unsigned char *buf)
 }
 
 
+
+
 int main()
 {
 
@@ -201,7 +202,6 @@ int main()
     packi64(buff, 0x112233445566);
     printf("packi64 -- %llx\n", unpacku64(buff));
     memset(buff, 0, sizeof(buff));
-
 
 
     
