@@ -129,4 +129,125 @@ typedef unsigned __int64    uint64_t;
 #define NO_RETURN
 #endif
 
-#endif  // WEBRTC_TYPEDEFS_H_
+
+
+#define ARRAY_SIZE(x) (static_cast<int>(sizeof(x) / sizeof(x[0])))
+
+/////////////////////////////////////////////////////////////////////////////
+// Assertions
+/////////////////////////////////////////////////////////////////////////////
+
+#ifndef ENABLE_DEBUG
+#define ENABLE_DEBUG _DEBUG
+#endif  // !defined(ENABLE_DEBUG)
+
+
+// Even for release builds, allow for the override of LogAssert. Though no
+// macro is provided, this can still be used for explicit runtime asserts
+// and allow applications to override the assert behavior.
+
+namespace rtc {
+    
+    
+    // If a debugger is attached, triggers a debugger breakpoint. If a debugger is
+    // not attached, forces program termination.
+    void Break();
+    
+    // LogAssert writes information about an assertion to the log. It's called by
+    // Assert (and from the ASSERT macro in debug mode) before any other action
+    // is taken (e.g. breaking the debugger, abort()ing, etc.).
+    void LogAssert(const char* function, const char* file, int line,
+                   const char* expression);
+    
+    typedef void (*AssertLogger)(const char* function,
+    const char* file,
+    int line,
+    const char* expression);
+    
+    // Sets a custom assert logger to be used instead of the default LogAssert
+    // behavior. To clear the custom assert logger, pass NULL for |logger| and the
+    // default behavior will be restored. Only one custom assert logger can be set
+    // at a time, so this should generally be set during application startup and
+    // only by one component.
+    void SetCustomAssertLogger(AssertLogger logger);
+    
+    bool IsOdd(int n);
+    
+    bool IsEven(int n);
+    
+}  // namespace rtc
+
+#if ENABLE_DEBUG
+
+namespace rtc {
+    
+    inline bool Assert(bool result, const char* function, const char* file,
+                       int line, const char* expression) {
+        if (!result) {
+            LogAssert(function, file, line, expression);
+            Break();
+        }
+        return result;
+    }
+    
+    // Same as Assert above, but does not call Break().  Used in assert macros
+    // that implement their own breaking.
+    inline bool AssertNoBreak(bool result, const char* function, const char* file,
+                              int line, const char* expression) {
+        if (!result)
+            LogAssert(function, file, line, expression);
+        return result;
+    }
+    
+}  // namespace rtc
+
+#if defined(_MSC_VER) && _MSC_VER < 1300
+#define __FUNCTION__ ""
+#endif
+
+#ifndef ASSERT
+#if defined(WIN32)
+// Using debugbreak() inline on Windows directly in the ASSERT macro, has the
+// benefit of breaking exactly where the failing expression is and not two
+// calls up the stack.
+#define ASSERT(x) \
+(rtc::AssertNoBreak((x), __FUNCTION__, __FILE__, __LINE__, #x) ? \
+(void)(1) : __debugbreak())
+#else
+#define ASSERT(x) \
+(void)rtc::Assert((x), __FUNCTION__, __FILE__, __LINE__, #x)
+#endif
+#endif
+
+#ifndef VERIFY
+#if defined(WIN32)
+#define VERIFY(x) \
+(rtc::AssertNoBreak((x), __FUNCTION__, __FILE__, __LINE__, #x) ? \
+true : (__debugbreak(), false))
+#else
+#define VERIFY(x) rtc::Assert((x), __FUNCTION__, __FILE__, __LINE__, #x)
+#endif
+#endif
+
+#else  // !ENABLE_DEBUG
+
+namespace rtc {
+    
+    inline bool ImplicitCastToBool(bool result) { return result; }
+    
+}  // namespace rtc
+
+#ifndef ASSERT
+#define ASSERT(x) (void)0
+#endif
+
+#ifndef VERIFY
+#define VERIFY(x) rtc::ImplicitCastToBool(x)
+#endif
+
+#endif  // !ENABLE_DEBUG
+
+
+
+
+#endif  // _UTIL_TYPEDEFS_H_
