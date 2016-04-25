@@ -39,11 +39,31 @@ void test_json_func()
     o["int"] = in_i;
     o["uint"] = in_u;
     o["bool"] = in_b;
+    string s = JsonValueToString(o);
+    printf("jsonvalueToString [%s]\n", s.c_str());
+    
     assert(GetValueFromJsonObject(o, "int", &out));
     assert(GetValueFromJsonObject(o, "bool", &out));
     assert(!GetValueFromJsonObject(o, "foo", &out));
     assert(!GetValueFromJsonObject(o, "", &out));
     
+    
+    Json::Reader reader;
+    Json::Value root;
+    if (reader.parse(s, root))
+    {
+        printf("reader parse succ! \n");
+        assert(GetValueFromJsonObject(root, "int", &out));
+        string jval;
+        GetStringFromJson(out, &jval);
+        int ival = 0;
+        GetIntFromJson(out, &ival);
+        printf("jsoncpp GetStringFromJson %s %d\n", jval.c_str(), ival);
+        
+        
+    }
+    
+   
 
 }
 

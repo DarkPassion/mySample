@@ -65,6 +65,14 @@ public:
             return 0;
         }
         MD5Final(&ctx_, static_cast<uint8*>(buf));
+        unsigned char* ptr = (unsigned char*)buf;
+        printf("MD5Final == begin\n");
+        for (int i = 0; i < kSize; i++) {
+            printf("%02x", ptr[i]);
+        }
+        printf("\nMD5Final == end\n");
+
+        
         std::string hexstr = hex_encode(static_cast<const char*>(buf), kSize);
         memcpy(buf, hexstr.data(), hexstr.length());
         MD5Init(&ctx_);  // Reset for next use.
