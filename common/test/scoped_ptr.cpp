@@ -5,6 +5,7 @@
 #include "util/scoped_ptr.h"
 
 // g++ scoped_ptr.cpp -I../include/ -L../libs/ -lcommon -o scoped_ptr.out
+// valgrind --tool=memcheck --leak-check=full ./scoped_ptr.out
 
 using namespace rtc;
 

@@ -80,7 +80,8 @@
 #if defined(_MSC_VER) && _MSC_VER <= 1600 // MSVC <= 2010
 # define JSONCPP_OVERRIDE
 #else
-# define JSONCPP_OVERRIDE override
+// # define JSONCPP_OVERRIDE override
+# define JSONCPP_OVERRIDE
 #endif // MSVC <= 2010
 
 
