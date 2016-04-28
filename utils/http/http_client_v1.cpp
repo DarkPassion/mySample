@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <fcntl.h>
+#include <string.h>
 
 
 // g++ http_client_v1.cpp -o http_client_v1.out
@@ -22,6 +23,10 @@ int http_clent_recvmessage(int fd);
 int http_client_dns_resolve(const char * url);
 
 void set_socket_noblocking(int fd);
+
+void http_client_parse_header(char* indata, int inlen, int& content_len);
+
+int get_http_content_len(char* http_response_header);
 
 
 //
@@ -125,6 +130,7 @@ int http_client_sendmessage(int fd)
     
     printf("send message [%d %s]\n", len, msg.c_str());
     int recvlen = 0;
+    int content_len = 0;
     while (1) {
 
         fd_set fds;
@@ -152,12 +158,22 @@ int http_client_sendmessage(int fd)
         char outbuff[8192] = {0};
         int nrecv = recv(fd, outbuff, sizeof(outbuff), 0);
         
+        if (recvlen == 0)
+        {
+            http_client_parse_header(outbuff, nrecv, content_len);
+            //printf("%s\n", outbuff);
+        }
         recvlen += nrecv;
         printf("nrecv [%d]\n", nrecv);
         if (nrecv <= 0) {
             break;
         }
         
+        if (content_len == recvlen)
+        {
+            printf("recvlen eq content len\n");
+            break;
+        }
         //printf("%s", outbuff);
     }
     
@@ -187,6 +203,88 @@ void set_socket_noblocking(int fd)
 
 }
 
+
+
+void http_client_parse_header(char* indata, int inlen, int& content_len)
+{
+    const char * header_sep = "\r\n\r\n";
+    const char* header_param_sep = "\r\n";
+    char * ptr_pos = strstr(indata, header_sep);
+
+    if (ptr_pos == NULL)
+    {
+        printf("error not found! header_sep\n");
+        return;
+    }
+
+    // find http response header
+    ptr_pos[0] = 0x0;
+    printf("%s\n", indata);
+
+    content_len = get_http_content_len(indata);
+
+}
+
+
+int get_http_content_len(char* http_response_header)
+{
+    int len = strlen(http_response_header);
+    int i = 0;
+    const char* sep = "\r\n";
+    const char* content_len = "Content-Length";
+
+    int icontent_len = 0;
+    int num = 0;
+
+
+    while (i < len)
+    {
+        char * ptr = strstr(http_response_header + i, sep);
+
+        if (ptr == NULL) {
+            // not found!
+            printf("not found!\n");
+            break;
+        } else {
+            char buff[1024] = {0};
+            int offset = ptr - (http_response_header + i);
+            memcpy(buff, http_response_header + i, offset);
+            i += offset + strlen(sep);
+
+            printf("%s\n", buff);
+
+            char* c = strstr(buff, content_len);
+            if (c != NULL) {
+                // find
+                
+                char* ipos = NULL;
+                int bfound_sep = 0;
+                for (int i = 0; i < offset; ++i)
+                {
+                    if (buff[i] == ':')
+                    {
+                        bfound_sep = 1;
+                    }
+
+                    if (bfound_sep && buff[i] > '0' && buff[i] <= '9')
+                    {
+                        ipos = buff + i;
+                        printf("found content len %s\n", ipos);
+                        icontent_len = atoi(ipos);
+                        break;
+                    }
+                }
+                
+                printf("i found [%s %d]\n", content_len, icontent_len);
+                break;
+            }
+        }
+    }
+
+    return icontent_len;
+}
+
+
 int main()
 {
     const char* url = "www.csdn.net";
@@ -196,7 +294,6 @@ int main()
     if (fd > 0) {
         http_client_sendmessage(fd);
     }
-    
     return 0;
 }
 
