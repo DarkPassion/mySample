@@ -9,6 +9,7 @@
 #include <sstream>
 #include <iostream>
 #include <string>
+#include <fcntl.h>
 
 
 // g++ http_client_v1.cpp -o http_client_v1.out
@@ -19,6 +20,8 @@ int http_client_sendmessage(int fd);
 int http_clent_recvmessage(int fd);
 
 int http_client_dns_resolve(const char * url);
+
+void set_socket_noblocking(int fd);
 
 
 //
@@ -116,13 +119,40 @@ int http_client_sendmessage(int fd)
     
     std::string msg = ss.str();
     
+    //set_socket_noblocking(fd);
     int len = strlen(msg.c_str());
     int nsend = send(fd, msg.c_str(), len, 0);
     
+    printf("send message [%d %s]\n", len, msg.c_str());
+    int recvlen = 0;
     while (1) {
+
+        fd_set fds;
+        int n;
+    
+        // 3 timeout
+        struct timeval tv;
+        tv.tv_sec = 3;
+        tv.tv_usec = 0;
+
+        FD_ZERO(&fds);
+        FD_SET(fd, &fds);
+
+        n = select(fd + 1, &fds, NULL, NULL, &tv);
+        if (n ==0)
+        {
+            printf("timeout === \n");
+            break;
+        } else if (n == -1)
+        {
+            printf("select error !\n");
+            break;
+        }
+        
         char outbuff[8192] = {0};
         int nrecv = recv(fd, outbuff, sizeof(outbuff), 0);
         
+        recvlen += nrecv;
         printf("nrecv [%d]\n", nrecv);
         if (nrecv <= 0) {
             break;
@@ -131,12 +161,31 @@ int http_client_sendmessage(int fd)
         //printf("%s", outbuff);
     }
     
+    printf("all recv len [%d]\n", recvlen);
+    close(fd);
     
 
     return 0;
 }
 
+void set_socket_noblocking(int fd)
+{
+    if (true)
+    {
+        int flags;
+        if ((flags = fcntl(fd, F_GETFL, NULL)) < 0) {
+            printf("fcntl F_GETFL fail !\n");
+            return;
+        }
+        if (!(flags & O_NONBLOCK)) {
+            if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+                printf("fcntl F_SETFL fail\n");
+                return;
+            }
+        }
+    }
 
+}
 
 int main()
 {
