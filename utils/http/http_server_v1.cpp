@@ -25,6 +25,8 @@ void on_connect(int fd, struct sockaddr* client_addr);
 void set_socket_noblocking(int fd);
 
 
+void set_socket_reuseable(int fd);
+
 void set_socket_noblocking(int fd)
 {
     if (true)
@@ -44,6 +46,16 @@ void set_socket_noblocking(int fd)
 
 }
 
+
+void set_socket_reuseable(int fd)
+{
+	int one = 1;
+	/* REUSEADDR on Unix means, "don't hang on to this address after the
+	 * listener is closed."  On Windows, though, it means "don't keep other
+	 * processes from binding to this address while we're using it. */
+	socklen_t len = sizeof(one);
+	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*) &one, len);
+}
 
 void on_connect(int fd, struct sockaddr* client_addr)
 {
@@ -74,9 +86,8 @@ void on_connect(int fd, struct sockaddr* client_addr)
 	ss << "Server: openresty" << sep;
 	ss << "Content-Type: text/html; charset=utf-8" << sep;
 	ss << "Content-Length: " << len << sep;
-	ss << "Connection: keep-alive" << sep;
-	ss << sep;
-	ss << sep;
+	ss << "Connection: keep-alive" << sep << sep;
+	ss << message;
 
 	std::string out = ss.str();
 	int outlen = strlen(out.c_str());
@@ -105,6 +116,7 @@ int mylistener(int port)
 		return -1;
 	}
 
+	set_socket_reuseable(fd);
 	int ret = bind(fd, (struct sockaddr*)&addr, sizeof(addr));
 	if (ret < 0)
 	{
@@ -112,7 +124,6 @@ int mylistener(int port)
 		return -1;
 	}
 
-	//  这里会阻塞
 	ret = listen(fd, 10);
 	if (ret < 0)
 	{
