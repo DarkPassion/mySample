@@ -22,6 +22,11 @@ int mylistener(int port);
 
 void on_connect(int fd, struct sockaddr* client_addr);
 
+void on_client_send_message(int fd);
+
+//  直接用于下载文件
+void on_client_download_file(int fd);
+
 void set_socket_noblocking(int fd);
 
 
@@ -75,8 +80,18 @@ void on_connect(int fd, struct sockaddr* client_addr)
 		return;
 	}
 
-	printf("on_connect request [%s]\n", request);
+	printf("on_connect request [%s %d]\n", request, nrecv);
 
+	//on_client_send_message(fd);
+	on_client_download_file(fd);
+
+	close(fd);
+}
+
+
+
+void on_client_send_message(int fd)
+{
 
 	const char* message = "hello world!";
 	const char* sep = "\r\n";
@@ -93,9 +108,53 @@ void on_connect(int fd, struct sockaddr* client_addr)
 	int outlen = strlen(out.c_str());
 
 	int nsend = send(fd, out.c_str(), outlen, 0);
-
 	printf("on connect send byte [%d] \n", nsend);
-	close(fd);
+}
+
+
+void on_client_download_file(int fd)
+{
+	const char* filename = "http_client_v1.cpp";
+	const char* sep = "\r\n";
+
+	char* file_content = NULL;
+	int filesize = 0;
+
+	FILE* _file = fopen(filename, "rb");
+	if (_file)
+	{
+		fseek(_file, 0, SEEK_END);
+		filesize = ftell(_file);
+		fseek(_file, 0, SEEK_SET);
+		file_content = new char[filesize];
+		fread(file_content, filesize, 1, _file);
+		fclose(_file);
+		_file = NULL;
+	}
+
+	if (file_content && filesize)
+	{
+		std::ostringstream ss;
+		ss << "HTTP/1.1 200 OK" << sep;
+		ss << "Server: openresty" << sep;
+		ss << "Content-Type: application/octet-stream" << sep;
+		ss << "Content-Length: " << filesize << sep;
+		ss << "Connection: keep-alive" << sep;
+		ss << "Content-Disposition: attachment; filename=" << filename;
+		ss << sep;
+		ss << sep;
+		
+
+		std::string out = ss.str();
+		int outlen =  strlen(out.c_str());
+		int nsend = send(fd, out.c_str(), outlen, 0);
+		printf("on_client_download_file send byte [%d]\n", outlen);
+		nsend = send(fd, file_content, filesize, 0);
+		printf("on_client_download_file send byte [%d]\n", filesize);
+
+	}
+
+
 }
 
 
