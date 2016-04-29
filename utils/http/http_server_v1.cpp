@@ -164,6 +164,7 @@ void on_client_download_file(int fd)
 void on_client_chunked(int fd)
 {
 
+	// https://en.wikipedia.org/wiki/Chunked_transfer_encoding
 	const char* message = "hello world!";
 	const char* sep = "\r\n";
 	int len = strlen(message);
@@ -180,23 +181,51 @@ void on_client_chunked(int fd)
 	int nsend = send(fd, out.c_str(), outlen, 0);
 	printf("on_client_chunked send byte [%d] \n", nsend);
 
-	// 清空 ss
-	ss.str("");
-	ss << strlen(message) << sep;
-	ss << message << sep;
-	out = ss.str();
-	outlen = strlen(out.c_str());
-	nsend = send(fd, out.c_str(), outlen, 0);
-	printf("on_client_chunked %s\n", out.c_str());
+	if (true)
+	{
+		// 清空 ss
+		char chunked_len[64] = {0};
+		sprintf(chunked_len, "%x", (int)strlen(message));
+		ss.str("");
+		ss << chunked_len << sep;
+		ss << message << sep;
+		out = ss.str();
+		outlen = strlen(out.c_str());
+		nsend = send(fd, out.c_str(), outlen, 0);
+		printf("on_client_chunked %s\n", out.c_str());
+	}
+
 
 	
-	// 清空 ss
-	ss.str("");
-	ss << 0 << sep << sep;
-	out = ss.str();
-	outlen = strlen(out.c_str());
-	nsend = send(fd, out.c_str(), outlen, 0);
-	printf("on_client_chunked %s\n", out.c_str());
+	if (true)
+	{
+		const char * msg = " Evens! \n\n";
+		char chunked_len[64] = {0};
+		sprintf(chunked_len, "%x", (int)strlen(msg));
+	
+		// 清空 ss
+		ss.str("");
+		ss << chunked_len << sep;
+		ss << msg << sep;
+		out = ss.str();
+		outlen = strlen(out.c_str());
+		nsend = send(fd, out.c_str(), outlen, 0);
+		printf("on_client_chunked %s\n", out.c_str());
+	}
+
+
+	if (true)
+	{
+		// 清空 ss
+		ss.str("");
+		ss << 0 << sep <<"" << sep;
+		out = ss.str();
+		outlen = strlen(out.c_str());
+		nsend = send(fd, out.c_str(), outlen, 0);
+		printf("on_client_chunked %s\n", out.c_str());
+
+	}
+	
 
 
 }
