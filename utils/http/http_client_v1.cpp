@@ -7,7 +7,6 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <sstream>
-#include <iostream>
 #include <string>
 #include <fcntl.h>
 #include <string.h>
@@ -115,7 +114,7 @@ int http_client_dns_resolve(const char * url)
         }
         struct sockaddr_in* sockin = (struct sockaddr_in*)(res->ai_addr);
         const char * ip = inet_ntoa(sockin->sin_addr);
-        printf("connect succ! [%s]\n", ip);
+        printf("connect succ! [%s %d]\n", ip, ntohs(sockin->sin_port));
         break;  /* okay we got one */
     }
     
@@ -395,8 +394,8 @@ int get_http_content_len(char* http_response_header)
 
 int main()
 {
-#if 0
-    const char* url = "www.csdn.net";
+#if 1
+    const char* url = "127.0.0.1";
    
     int fd = http_client_dns_resolve(url);
     
@@ -405,7 +404,7 @@ int main()
     }
 #endif
 
-#if 1
+#if 0
     const char * c = "HTTP/1.1 200 OK\r\n\
 Server: openresty\r\n\
 Date: Fri, 29 Apr 2016 12:50:18 GMT\r\n\
