@@ -27,6 +27,9 @@ void on_client_send_message(int fd);
 //  直接用于下载文件
 void on_client_download_file(int fd);
 
+// chunked 
+void on_client_chunked(int fd);
+
 void set_socket_noblocking(int fd);
 
 
@@ -83,7 +86,8 @@ void on_connect(int fd, struct sockaddr* client_addr)
 	printf("on_connect request [%s %d]\n", request, nrecv);
 
 	//on_client_send_message(fd);
-	on_client_download_file(fd);
+	//on_client_download_file(fd);
+	on_client_chunked(fd);
 
 	close(fd);
 }
@@ -153,6 +157,46 @@ void on_client_download_file(int fd)
 		printf("on_client_download_file send byte [%d]\n", filesize);
 
 	}
+
+
+}
+
+void on_client_chunked(int fd)
+{
+
+	const char* message = "hello world!";
+	const char* sep = "\r\n";
+	int len = strlen(message);
+	std::ostringstream ss;
+	ss << "HTTP/1.1 200 OK" << sep;
+	ss << "Server: openresty" << sep;
+	ss << "Content-Type: text/plain; charset=utf-8" << sep;
+	ss << "Transfer-Encoding: chunked" << sep << sep;
+	//ss << "Connection: keep-alive" << sep << sep;
+	
+	std::string out = ss.str();
+	int outlen = strlen(out.c_str());
+
+	int nsend = send(fd, out.c_str(), outlen, 0);
+	printf("on_client_chunked send byte [%d] \n", nsend);
+
+	// 清空 ss
+	ss.str("");
+	ss << strlen(message) << sep;
+	ss << message << sep;
+	out = ss.str();
+	outlen = strlen(out.c_str());
+	nsend = send(fd, out.c_str(), outlen, 0);
+	printf("on_client_chunked %s\n", out.c_str());
+
+	
+	// 清空 ss
+	ss.str("");
+	ss << 0 << sep << sep;
+	out = ss.str();
+	outlen = strlen(out.c_str());
+	nsend = send(fd, out.c_str(), outlen, 0);
+	printf("on_client_chunked %s\n", out.c_str());
 
 
 }
