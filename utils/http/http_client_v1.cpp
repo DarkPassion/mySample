@@ -11,12 +11,13 @@
 #include <string>
 #include <fcntl.h>
 #include <string.h>
-
+#include <map>
+#include <vector>
 
 // g++ http_client_v1.cpp -o http_client_v1.out
 // https://github.com/emilw/HttpClient.git
 
-int http_client_sendmessage(int fd);
+int http_client_sendmessage(int fd, const char* url);
 
 int http_clent_recvmessage(int fd);
 
@@ -28,6 +29,17 @@ void http_client_parse_header(char* indata, int inlen, int& content_len, int& he
 
 int get_http_content_len(char* http_response_header);
 
+void parse_http_param(char* indata, int inlen);
+
+struct Params
+{
+    std::string key;
+    std::string val;
+};
+
+typedef std::vector<Params*> HttpParam;
+// map : when insert pair auto sort
+// typedef std::map<std::string, std::string> HttpParam;
 
 //
 //  struct sockaddr {
@@ -95,6 +107,7 @@ int http_client_dns_resolve(const char * url)
         // struct sockaddr* address
         // socklen_t address_len
         // connect(int socket, const struct sockaddr *address, socklen_t address_len);
+
         if (connect(s, res->ai_addr, res->ai_addrlen) < 0) {
             printf("connect error !\n");
             s = -1;
@@ -111,24 +124,38 @@ int http_client_dns_resolve(const char * url)
     return s;
 }
 
-int http_client_sendmessage(int fd)
+int http_client_sendmessage(int fd, const char* url)
 {
-    if (fd < 1) {
+    if (fd < 1 || url == NULL) {
+        printf("http client sendmessage params error !\n");
         return -1;
     }
+
+    const char* host = NULL;
+    if (true)
+    {
+        const char* c = strstr(url, "http://");
+        if (c != NULL)
+        {
+            host = c;
+        } else {
+            host = url;
+        }
+    }
+
     std::ostringstream ss;
     ss << "GET / HTTP/1.1\n";
-    ss << "host:" << "www.csdn.net\n";
+    ss << "host:" << host << "\n";
     ss << "User-Agent: curl/7.43.0\n";
     ss << "Accept: */*\n\n";
     
     std::string msg = ss.str();
     
-    //set_socket_noblocking(fd);
+    // set_socket_noblocking(fd);
     int len = strlen(msg.c_str());
     int nsend = send(fd, msg.c_str(), len, 0);
     
-    printf("send message [%d %s]\n", len, msg.c_str());
+    // printf("send message [%d %s]\n", len, msg.c_str());
     int recvlen = 0;
     int content_len = 0;
     int header_len = 0;
@@ -172,7 +199,6 @@ int http_client_sendmessage(int fd)
             break;
         }
         
-        // FIXME  接收到的报文不等于Content-Length
         if (content_len <= recvlen)
         {
             printf("recvlen eq content len\n");
@@ -209,6 +235,82 @@ void set_socket_noblocking(int fd)
 
 
 
+void parse_http_param(char* indata, int inlen)
+{
+    int i = 0;
+    const char* sep = "\r\n";
+    HttpParam _queue;
+    while (i < inlen)
+    {
+       if (indata[i + 0] == '\r' && indata[i + 1] == '\n')
+       {
+            indata[i + 0] = 0x0;
+            indata[i + 1] = 0x0;
+       }
+       i++;
+    }
+
+    i = 0;
+    while (i < inlen)
+    {
+        int line_len = strlen(indata + i);
+
+        char* line = indata + i;
+
+        for (int j = 0; j < line_len; j++)
+        {
+            if (line[j] == ':')
+            {
+                line[j] = 0x0;
+                Params *p = new Params;
+                std::string key(line);
+                std::string val(line + j + 1);
+                p->key = key;
+                p->val = val;
+                _queue.push_back(p);
+                break;
+            }
+        }
+        i += line_len + 2;
+    }
+
+
+    HttpParam::iterator iter = _queue.begin();
+    while (iter != _queue.end())
+    {
+        std::string k = (*iter)->key;
+        std::string v = (*iter)->val;
+
+        printf("http params [%s %s] \n", k.c_str(), v.c_str());
+        iter++;
+    }    
+
+    while (_queue.size())
+    {
+        Params*  p = _queue.at(0);
+        delete p;
+        _queue.erase(_queue.begin());
+    }
+
+    HttpParam tmp;
+    tmp.swap(_queue);
+}
+
+
+//    const char * c = "HTTP/1.1 200 OK\r\n\
+// Server: openresty\r\n\
+// Date: Fri, 29 Apr 2016 12:50:18 GMT\r\n\
+// Content-Type: text/html; charset=utf-8\r\n\
+// Content-Length: 97216\r\n\
+// Connection: keep-alive\r\n\
+// Keep-Alive: timeout=20\r\n\
+// Vary: Accept-Encoding\r\n\
+// Last-Modified: Fri, 29 Apr 2016 12:40:02 GMT\r\n\
+// Vary: Accept-Encoding\r\n\
+// ETag: \"57235622-17bc0\"\r\n\
+// Accept-Ranges: bytes";
+
+
 void http_client_parse_header(char* indata, int inlen, int& content_len, int& header_len)
 {
     const char * header_sep = "\r\n\r\n";
@@ -224,10 +326,11 @@ void http_client_parse_header(char* indata, int inlen, int& content_len, int& he
     // find http response header
     ptr_pos[0] = 0x0;
     printf("%s\n", indata);
-    header_len = strlen(indata);
+    header_len = strlen(indata) + strlen(header_sep);
 
     content_len = get_http_content_len(indata);
 
+    parse_http_param(indata, strlen(indata));
 }
 
 
@@ -292,13 +395,35 @@ int get_http_content_len(char* http_response_header)
 
 int main()
 {
+#if 0
     const char* url = "www.csdn.net";
    
     int fd = http_client_dns_resolve(url);
     
     if (fd > 0) {
-        http_client_sendmessage(fd);
+        http_client_sendmessage(fd, url);
     }
+#endif
+
+#if 1
+    const char * c = "HTTP/1.1 200 OK\r\n\
+Server: openresty\r\n\
+Date: Fri, 29 Apr 2016 12:50:18 GMT\r\n\
+Content-Type: text/html; charset=utf-8\r\n\
+Content-Length: 97216\r\n\
+Connection: keep-alive\r\n\
+Keep-Alive: timeout=20\r\n\
+Vary: Accept-Encoding\r\n\
+Last-Modified: Fri, 29 Apr 2016 12:40:02 GMT\r\n\
+Vary: Accept-Encoding\r\n\
+ETag: \"57235622-17bc0\"\r\n\
+Accept-Ranges: bytes";
+
+    char header_buff[2048] = {0};
+    sprintf(header_buff, "%s", c);
+
+    parse_http_param(header_buff, strlen(header_buff));
+#endif
     return 0;
 }
 
