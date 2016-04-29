@@ -24,7 +24,7 @@ int http_client_dns_resolve(const char * url);
 
 void set_socket_noblocking(int fd);
 
-void http_client_parse_header(char* indata, int inlen, int& content_len);
+void http_client_parse_header(char* indata, int inlen, int& content_len, int& header_len);
 
 int get_http_content_len(char* http_response_header);
 
@@ -131,6 +131,7 @@ int http_client_sendmessage(int fd)
     printf("send message [%d %s]\n", len, msg.c_str());
     int recvlen = 0;
     int content_len = 0;
+    int header_len = 0;
     while (1) {
 
         fd_set fds;
@@ -138,7 +139,7 @@ int http_client_sendmessage(int fd)
     
         // 3 timeout
         struct timeval tv;
-        tv.tv_sec = 3;
+        tv.tv_sec = 10;
         tv.tv_usec = 0;
 
         FD_ZERO(&fds);
@@ -160,7 +161,9 @@ int http_client_sendmessage(int fd)
         
         if (recvlen == 0)
         {
-            http_client_parse_header(outbuff, nrecv, content_len);
+            http_client_parse_header(outbuff, nrecv, content_len, header_len);
+            printf("http_client_parse_header [%d %d]\n", content_len, header_len);
+            nrecv -= header_len;
             //printf("%s\n", outbuff);
         }
         recvlen += nrecv;
@@ -169,7 +172,8 @@ int http_client_sendmessage(int fd)
             break;
         }
         
-        if (content_len == recvlen)
+        // FIXME  接收到的报文不等于Content-Length
+        if (content_len <= recvlen)
         {
             printf("recvlen eq content len\n");
             break;
@@ -205,7 +209,7 @@ void set_socket_noblocking(int fd)
 
 
 
-void http_client_parse_header(char* indata, int inlen, int& content_len)
+void http_client_parse_header(char* indata, int inlen, int& content_len, int& header_len)
 {
     const char * header_sep = "\r\n\r\n";
     const char* header_param_sep = "\r\n";
@@ -220,6 +224,7 @@ void http_client_parse_header(char* indata, int inlen, int& content_len)
     // find http response header
     ptr_pos[0] = 0x0;
     printf("%s\n", indata);
+    header_len = strlen(indata);
 
     content_len = get_http_content_len(indata);
 
