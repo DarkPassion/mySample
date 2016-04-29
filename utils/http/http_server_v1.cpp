@@ -80,6 +80,7 @@ void on_connect(int fd, struct sockaddr* client_addr)
 	if (nrecv < 0)
 	{
 		printf("recv error !\n");
+		close(fd);
 		return;
 	}
 
@@ -181,6 +182,8 @@ void on_client_chunked(int fd)
 	int nsend = send(fd, out.c_str(), outlen, 0);
 	printf("on_client_chunked send byte [%d] \n", nsend);
 
+	// [len][\r\n][content][\r\n]
+	// len 十六进制表示
 	if (true)
 	{
 		// 清空 ss

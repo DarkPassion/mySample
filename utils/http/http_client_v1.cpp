@@ -15,6 +15,9 @@
 
 // g++ http_client_v1.cpp -o http_client_v1.out
 // https://github.com/emilw/HttpClient.git
+// https://imququ.com/post/four-ways-to-post-data-in-http.html
+
+int http_client_multipart(int fd, const char* url);
 
 int http_client_sendmessage(int fd, const char* url);
 
@@ -123,38 +126,9 @@ int http_client_dns_resolve(const char * url)
     return s;
 }
 
-int http_client_sendmessage(int fd, const char* url)
+int http_clent_recvmessage(int fd)
 {
-    if (fd < 1 || url == NULL) {
-        printf("http client sendmessage params error !\n");
-        return -1;
-    }
 
-    const char* host = NULL;
-    if (true)
-    {
-        const char* c = strstr(url, "http://");
-        if (c != NULL)
-        {
-            host = c;
-        } else {
-            host = url;
-        }
-    }
-
-    std::ostringstream ss;
-    ss << "GET / HTTP/1.1\n";
-    ss << "host:" << host << "\n";
-    ss << "User-Agent: curl/7.43.0\n";
-    ss << "Accept: */*\n\n";
-    
-    std::string msg = ss.str();
-    
-    // set_socket_noblocking(fd);
-    int len = strlen(msg.c_str());
-    int nsend = send(fd, msg.c_str(), len, 0);
-    
-    // printf("send message [%d %s]\n", len, msg.c_str());
     int recvlen = 0;
     int content_len = 0;
     int header_len = 0;
@@ -163,7 +137,7 @@ int http_client_sendmessage(int fd, const char* url)
         fd_set fds;
         int n;
     
-        // 3 timeout
+        // 10s timeout
         struct timeval tv;
         tv.tv_sec = 10;
         tv.tv_usec = 0;
@@ -208,7 +182,116 @@ int http_client_sendmessage(int fd, const char* url)
     
     printf("all recv len [%d]\n", recvlen);
     close(fd);
+
+    return 0;
+}
+
+int http_client_sendmessage(int fd, const char* url)
+{
+    if (fd < 1 || url == NULL) {
+        printf("http client sendmessage params error !\n");
+        return -1;
+    }
+
+    const char* host = NULL;
+    if (true)
+    {
+        const char* c = strstr(url, "http://");
+        if (c != NULL)
+        {
+            host = c;
+        } else {
+            host = url;
+        }
+    }
+
+    const char * sep = "\r\n";
+    std::ostringstream ss;
+    ss << "GET / HTTP/1.1" << sep;
+    ss << "host:" << host << sep;
+    ss << "User-Agent: curl/7.43.0" << sep;
+    ss << "Accept: */*" << sep << sep;
     
+    std::string msg = ss.str();
+    
+    // set_socket_noblocking(fd);
+    int len = strlen(msg.c_str());
+    int nsend = send(fd, msg.c_str(), len, 0);
+    
+    // printf("send message [%d %s]\n", len, msg.c_str());
+    return 0;
+}
+
+int http_client_multipart(int fd, const char* url)
+{
+
+    if (fd < 1 || url == NULL) {
+        printf("http client sendmessage params error !\n");
+        return -1;
+    }
+
+    const char* host = NULL;
+    if (true)
+    {
+        const char* c = strstr(url, "http://");
+        if (c != NULL)
+        {
+            host = c;
+        } else {
+            host = url;
+        }
+    }
+
+    const char* filename = "http_client_v1.cpp";
+    char* file_content = NULL;
+    int filesize = 0;
+
+    FILE* _file = fopen(filename, "rb");
+    if (_file)
+    {
+        fseek(_file, 0, SEEK_END);
+        filesize = ftell(_file);
+        fseek(_file, 0, SEEK_SET);
+        file_content = new char[filesize];
+        fread(file_content, filesize, 1, _file);
+        fclose(_file);
+        _file = NULL;
+    }
+
+
+    const char* boundary = "----WebKitFormBoundaryrGKCBY7qhFd3TrwA";
+    const char* sep = "\r\n";
+
+    std::ostringstream cons;
+    cons << "Content-Disposition: form-data; name=\"" << filename << "\";";
+    cons << "filename=\"/Users/zhangzhifan/work/git-code/mySample/utils/http/http_client_v1.cpp\"";
+    cons << sep;
+    cons << "Content-Type: text/plain" << sep << sep;
+    cons << boundary << sep;
+    cons.write(file_content, filesize);
+    cons << boundary << sep;
+    std::string c = cons.str();
+    int clen = c.size();
+
+
+
+    std::ostringstream ss;
+    ss << "POST / HTTP/1.1" << sep;
+    ss << "host:" << host << sep;
+    ss << "Content-Type:multipart/form-data; boundary=" << boundary << sep; 
+    ss << "User-Agent: curl/7.43.0" << sep;
+    ss << "Content-Length: " << clen << sep;
+    ss << "Accept: */*" << sep << sep;
+    ss << boundary;
+    ss << c;
+    
+    std::string msg = ss.str();
+    
+    // set_socket_noblocking(fd);
+    int len = msg.size();
+    int nsend = send(fd, msg.data(), len, 0);
+
+    printf("http_client_multipart send [%d %d]\n", nsend, len);
 
     return 0;
 }
@@ -401,6 +484,7 @@ int main()
     
     if (fd > 0) {
         http_client_sendmessage(fd, url);
+        http_clent_recvmessage(fd);
     }
 #endif
 
