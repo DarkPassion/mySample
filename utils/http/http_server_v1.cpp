@@ -15,7 +15,8 @@
 
 
 // g++ http_server_v1.cpp -o http_server_v1.out
-
+// Multipart/form-data
+// http://blog.csdn.net/MSPinyin/article/details/6141638
 
 
 int mylistener(int port);
@@ -32,8 +33,17 @@ void on_client_chunked(int fd);
 
 void set_socket_noblocking(int fd);
 
+void on_client_recvmsg(int fd);
 
 void set_socket_reuseable(int fd);
+
+int get_http_content_len(char* http_response_header);
+
+void http_client_parse_header(char* indata, int inlen, int& content_len, int& header_len);
+
+
+// fix handle http client upload file
+void http_write_upload_file(FILE* file, char* idnata, int inlen, int isheader);
 
 void set_socket_noblocking(int fd)
 {
@@ -74,17 +84,7 @@ void on_connect(int fd, struct sockaddr* client_addr)
 	printf("client ip [%s %d]\n", ip, port);
 
 	// set_socket_noblocking(fd);
-
-	char request[2048] = {0};
-	int nrecv = recv(fd, request, sizeof(request), 0);
-	if (nrecv < 0)
-	{
-		printf("recv error !\n");
-		close(fd);
-		return;
-	}
-
-	printf("on_connect request [%s %d]\n", request, nrecv);
+	on_client_recvmsg(fd);
 
 	//on_client_send_message(fd);
 	//on_client_download_file(fd);
@@ -94,6 +94,276 @@ void on_connect(int fd, struct sockaddr* client_addr)
 }
 
 
+
+int get_http_content_len(char* http_response_header)
+{
+    int len = strlen(http_response_header);
+    int i = 0;
+    const char* sep = "\r\n";
+    const char* content_len = "Content-Length";
+
+    int icontent_len = 0;
+    int num = 0;
+
+
+    while (i < len)
+    {
+        char * ptr = strstr(http_response_header + i, sep);
+
+        if (ptr == NULL) {
+            // not found!
+            printf("not found!\n");
+            break;
+        } else {
+            char buff[1024] = {0};
+            int offset = ptr - (http_response_header + i);
+            memcpy(buff, http_response_header + i, offset);
+            i += offset + strlen(sep);
+
+            printf("%s\n", buff);
+
+            char* c = strstr(buff, content_len);
+            if (c != NULL) {
+                // find
+                
+                char* ipos = NULL;
+                int bfound_sep = 0;
+                for (int i = 0; i < offset; ++i)
+                {
+                    if (buff[i] == ':')
+                    {
+                        bfound_sep = 1;
+                    }
+
+                    if (bfound_sep && buff[i] > '0' && buff[i] <= '9')
+                    {
+                        ipos = buff + i;
+                        printf("found content len %s\n", ipos);
+                        icontent_len = atoi(ipos);
+                        break;
+                    }
+                }
+                
+                printf("i found [%s %d]\n", content_len, icontent_len);
+                break;
+            }
+        }
+    }
+
+    return icontent_len;
+}
+
+
+
+void http_client_parse_header(char* indata, int inlen, int& content_len, int& header_len)
+{
+    const char * header_sep = "\r\n\r\n";
+    const char* header_param_sep = "\r\n";
+    char * ptr_pos = strstr(indata, header_sep);
+
+    if (ptr_pos == NULL)
+    {
+        printf("error not found! header_sep\n");
+        return;
+    }
+
+    // find http response header
+    ptr_pos[0] = 0x0;
+    printf("%s\n", indata);
+    header_len = strlen(indata) + strlen(header_sep);
+
+    content_len = get_http_content_len(indata);
+
+}
+
+void http_write_upload_file(FILE* file, char* indata, int inlen, int isheader)
+{
+
+	if (file == NULL || indata == NULL || inlen <= 0)
+	{
+		printf("http_write_upload_file error !\n");
+		return;
+	}
+
+	const char* sep = "\r\n";
+	const char* sepsep = "\r\n\r\n";
+
+	char* boundary = NULL;
+	char* content_pos = NULL;
+	char* content_type = NULL;
+
+	if (isheader)
+	{
+		int ipos = 0;
+		int i = 0;
+		int skip_len = 0;
+		while(i < inlen)
+		{
+			if (indata[i + 0] == sep[0] &&
+				indata[i + 1] == sep[1])
+			{
+				int len = i - ipos;
+				char line[1024] = {0};
+				memcpy(line, indata + ipos, len);
+				printf("line %s\n", line);
+
+				if (true)
+				{
+					int j=0;
+					const char* b = "--";
+					const char* cd = "Content-Disposition";
+					const char* ct = "Content-Type";
+					while (j < strlen(line))
+					{
+						if (true)
+						{
+							const char* c = strstr(line, b);
+							if (c)
+							{
+								boundary = new char[1024];
+								memset(boundary, 0, 1024);
+								memcpy(boundary, line, strlen(line));
+								skip_len += strlen(line) + 2;
+								break;
+							}
+						}
+
+						if (true)
+						{
+							const char* c=  strstr(line, cd);
+							if (c)
+							{
+								content_pos = new char[1024];
+								memset(content_pos, 0, 1024);
+								memcpy(content_pos, line, strlen(line));
+								skip_len += strlen(line) + 2;
+								break;
+							}
+
+						}
+
+						if (true)
+						{
+							const char* c = strstr(line, ct);
+							if (c)
+							{
+								content_type = new char[1024];
+								memset(content_type, 0, 1024);
+								memcpy(content_type, line, strlen(line));
+								skip_len += strlen(line) + 2;
+								break;
+							}
+						}
+					} // end while
+
+				} // end if
+
+				ipos = i + 2;
+				i += 2;
+			} else {
+				i++;
+			}
+		} // end while
+
+		fwrite(indata + skip_len, inlen - skip_len, 1, file);
+
+		if (boundary)
+		{
+			printf("%s\n", boundary);
+			delete[] boundary;
+		}
+
+		if (content_type)
+		{
+			printf("%s\n", content_type);
+			delete[] content_type;
+		}
+
+		if (content_pos)
+		{
+			printf("%s\n", content_pos);
+			delete[] content_pos;
+		}
+
+
+	} else {
+
+		const char* boundary = "----WebKitFormBoundaryrGKCBY7qhFd3TrwA";
+
+		const char * c = strstr(indata, boundary);
+		if (c == NULL)
+		{
+			fwrite(indata, inlen, 1, file);
+		} else {
+			const int skip_len = strlen(boundary) + 2;
+			fwrite(indata, inlen - skip_len, 1, file);
+		}
+
+	}
+
+}
+
+void on_client_recvmsg(int fd)
+{
+	int recvlen = 0;
+    int content_len = 0;
+    int header_len = 0;
+
+    FILE* _file = fopen("upload.cpp", "wb");
+    while (1) {
+
+        fd_set fds;
+        int n;
+    
+        // 10s timeout
+        struct timeval tv;
+        tv.tv_sec = 10;
+        tv.tv_usec = 0;
+
+        FD_ZERO(&fds);
+        FD_SET(fd, &fds);
+
+        n = select(fd + 1, &fds, NULL, NULL, &tv);
+        if (n ==0)
+        {
+            printf("timeout === \n");
+            break;
+        } else if (n == -1)
+        {
+            printf("select error !\n");
+            break;
+        }
+        
+        char outbuff[8192] = {0};
+        int nrecv = recv(fd, outbuff, sizeof(outbuff), 0);
+        
+        if (recvlen == 0)
+        {
+            http_client_parse_header(outbuff, nrecv, content_len, header_len);
+            printf("http_client_parse_header [%d %d]\n", content_len, header_len);
+            nrecv -= header_len;
+            http_write_upload_file(_file, outbuff + header_len, nrecv, 1);
+            //printf("%s\n", outbuff);
+        } else {
+        	http_write_upload_file(_file, outbuff, nrecv, 0);
+        }
+        recvlen += nrecv;
+        printf("nrecv [%d]\n", nrecv);
+        if (nrecv <= 0) {
+            break;
+        }
+        
+        if (content_len <= recvlen)
+        {
+            printf("recvlen eq content len\n");
+            break;
+        }
+        //printf("%s", outbuff);
+    }
+    fclose(_file);
+    _file = NULL;
+    printf("all recv len [%d]\n", recvlen);
+}
 
 void on_client_send_message(int fd)
 {

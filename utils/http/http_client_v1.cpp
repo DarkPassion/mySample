@@ -263,11 +263,11 @@ int http_client_multipart(int fd, const char* url)
     const char* sep = "\r\n";
 
     std::ostringstream cons;
+    cons << boundary << sep;
     cons << "Content-Disposition: form-data; name=\"" << filename << "\";";
     cons << "filename=\"/Users/zhangzhifan/work/git-code/mySample/utils/http/http_client_v1.cpp\"";
     cons << sep;
     cons << "Content-Type: text/plain" << sep << sep;
-    cons << boundary << sep;
     cons.write(file_content, filesize);
     cons << boundary << sep;
     std::string c = cons.str();
@@ -282,7 +282,6 @@ int http_client_multipart(int fd, const char* url)
     ss << "User-Agent: curl/7.43.0" << sep;
     ss << "Content-Length: " << clen << sep;
     ss << "Accept: */*" << sep << sep;
-    ss << boundary;
     ss << c;
     
     std::string msg = ss.str();
@@ -483,7 +482,8 @@ int main()
     int fd = http_client_dns_resolve(url);
     
     if (fd > 0) {
-        http_client_sendmessage(fd, url);
+        //http_client_sendmessage(fd, url);
+        http_client_multipart(fd, url);
         http_clent_recvmessage(fd);
     }
 #endif
