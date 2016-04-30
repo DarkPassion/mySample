@@ -12,40 +12,40 @@ class rtmp_conn
 {
 
 public:
-	rtmp_conn();
+    rtmp_conn();
 
-	~rtmp_conn();
-
-
-	void connect(const char* url);
-
-	void send_h264(const unsigned char* buff, int len, int timestamp);
-
-	void send_aac(const unsigned char* buff, int len, int timesamp);
-
-	void close();
+    ~rtmp_conn();
 
 
-private:
+    void connect(const char* url);
 
-	void send_avc_config();
+    void send_h264(const unsigned char* buff, int len, int timestamp);
 
-	void send_aac_config();
+    void send_aac(const unsigned char* buff, int len, int timesamp);
 
-	void send_video_packet(unsigned char* indata, int inlen, int timestamp, int bkey);
+    void close();
 
-	void send_packet(unsigned char type, unsigned char* buff, int len, int timestamp);
-
-	int find_start_code(unsigned char* buff,  int len, int & startcode);
 
 private:
-	std::string _url;
-	RTMP*	_rtmp;
-	bool	_aac_conf_send;
-	bool	_avc_conf_send;
-	std::string _sps;
-	std::string _pps;
-	std::string _aac_conf;
+
+    void send_avc_config();
+
+    void send_aac_config();
+
+    void send_video_packet(unsigned char* indata, int inlen, int timestamp, int bkey);
+
+    void send_packet(unsigned char type, unsigned char* buff, int len, int timestamp);
+
+    int find_start_code(unsigned char* buff,  int len, int & startcode);
+
+private:
+    std::string _url;
+    RTMP*	_rtmp;
+    bool	_aac_conf_send;
+    bool	_avc_conf_send;
+    std::string _sps;
+    std::string _pps;
+    std::string _aac_conf;
 
 
 };
