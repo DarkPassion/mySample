@@ -19,7 +19,7 @@ public:
 
 	void connect(const char* url);
 
-	void send_h264(const unsigned char* buff, int len, int bkey, int timestamp);
+	void send_h264(const unsigned char* buff, int len, int timestamp);
 
 	void send_aac(const unsigned char* buff, int len, int timesamp);
 
@@ -32,9 +32,11 @@ private:
 
 	void send_aac_config();
 
+	void send_video_packet(unsigned char* indata, int inlen, int timestamp, int bkey);
+
 	void send_packet(unsigned char type, unsigned char* buff, int len, int timestamp);
 
-	int find_start_code(unsigned char* buff,  int len);
+	int find_start_code(unsigned char* buff,  int len, int & startcode);
 
 private:
 	std::string _url;
