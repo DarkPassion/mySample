@@ -22,7 +22,20 @@ void set_socket_reuseable(int fd);
 
 void on_accept(int fd, int event, void* ptr);
 
+void on_server_read(int fd, int event, void* u);
+
+void on_client_read(int fd, int event, void* u);
+
+void on_client_write(int fd, int event, void* u);
+
+
+void socket_no_pipe(int fd);
+
 int mylistener(int port);
+
+
+class Reactor;
+int myclient(int port, Reactor* acotor);
 
 
 enum
@@ -33,6 +46,7 @@ enum
 };
 
 typedef void (*ReactorCallback)(int fd, int event, void* ptr);
+
 
 class Reactor
 {
@@ -55,8 +69,8 @@ public:
         while(!_stop)
         {
             struct timeval tv;
-            tv.tv_sec = 0;
-            tv.tv_usec = 1000 * 50;
+            tv.tv_sec = 1;
+            tv.tv_usec = 0;
 
             fd_set rfds;
             fd_set wfds;
@@ -67,7 +81,7 @@ public:
             if (true)
             {
                 int i = 0;
-                int s = _fds.size();
+                int s = (int)_fds.size();
                 while (i < s)
                 {
                     RectorParams* p = _fds.at(i);
@@ -94,6 +108,7 @@ public:
 
             if (nselect == 0)
             {
+                printf("select [%d %zu]\n", max_fd, _fds.size());
                 // timeout
                 continue;
             }
@@ -108,21 +123,26 @@ public:
                 if (true)
                 {
                     int i = 0;
-                    int s= _fds.size();
 
-                    while (i< s)
+                    printf(" event fds [%zu]\n", _fds.size());
+
+                    while (i< _fds.size())
                     {
 
                         RectorParams* p = _fds.at(i);
 
-                        if (p->_fd && FD_ISSET(p->_fd, &rfds) && p->_read_callback)
+                        if (p && p->_fd && FD_ISSET(p->_fd, &rfds) && p->_read_callback)
                         {
                             p->_read_callback(p->_fd, REACTOR_EVENT_READ, p->_userdata);
                         }
 
-                        if (p->_fd && FD_ISSET(p->_fd, &wfds) && p->_write_callback)
+                        if (p && p->_fd && FD_ISSET(p->_fd, &wfds) && p->_write_callback)
                         {
                             p->_write_callback(p->_fd, REACTOR_EVENT_WRITE, p->_userdata);
+                            _fds.erase(_fds.begin() + i);
+                            delete p;
+                            p = NULL;
+                            continue;
                         }
 
                         i++;
@@ -130,10 +150,6 @@ public:
                 }
 
             }
-
-
-
-
 
         }
         _status = 2;
@@ -148,6 +164,12 @@ public:
         p->_write_callback = write;
         p->_userdata = userdata;
         _fds.push_back(p);
+
+        if (fd < 0)
+        {
+            printf("add event [%d] \n", fd);
+        }
+
     }
 
 
@@ -162,10 +184,10 @@ private:
 
     struct RectorParams
     {
-        int 			_fd;
-        ReactorCallback	_read_callback;
-        ReactorCallback	_write_callback;
-        void*			_userdata;
+        int             _fd;
+        ReactorCallback _read_callback;
+        ReactorCallback _write_callback;
+        void*           _userdata;
 
     };
 
@@ -174,12 +196,11 @@ private:
     void operator=(const Reactor& r);
 
     typedef std::vector<RectorParams*> VectFds;
-    VectFds	_fds;
-    int 	_stop;
-    int 	_status;
+    VectFds _fds;
+    int     _stop;
+    int     _status;
 
 };
-
 
 
 void set_socket_noblocking(int fd)
@@ -241,6 +262,7 @@ int mylistener(int port, Reactor* actor)
         printf("bind error!\n");
         return -1;
     }
+    printf("bind SUCC!\n");
 
     ret = listen(fd, 10);
 
@@ -251,7 +273,7 @@ int mylistener(int port, Reactor* actor)
     }
 
     set_socket_noblocking(fd);
-    actor->add_event(fd, on_accept, NULL, NULL);
+    actor->add_event(fd, on_accept, NULL, actor);
 
     return 0;
 }
@@ -259,29 +281,109 @@ int mylistener(int port, Reactor* actor)
 void on_accept(int fd, int event, void* u)
 {
 
+    Reactor* actor =  (Reactor*)u;
     printf("begin accept\n");
     struct sockaddr_in client_addr;
     socklen_t len = sizeof(client_addr);
     memset(&client_addr, 0, sizeof(client_addr));
     int clientfd = accept(fd, (struct sockaddr*)&client_addr, &len);
-    if (clientfd)
+    if (clientfd > 0)
     {
-        // succ!
-        close(fd);
-        close(clientfd);
+        printf("on_accept [%d %s]\n", clientfd, inet_ntoa(client_addr.sin_addr));
+        actor->add_event(clientfd, on_server_read, NULL, actor);
     }
     else
     {
         printf("accept error !\n");
+        return;
     }
+
 }
 
 
+void on_server_read(int fd, int event, void* u)
+{
+    printf("on server read !\n");
+    //Reactor* actor = (Reactor*)u;
+
+    char outbuff[8192] = {0};
+    size_t nrecv = recv(fd, outbuff, sizeof(outbuff), 0);
+    printf("on_server_read [%d %zu %s] \n", fd, nrecv, outbuff);
+
+    size_t nsend = send(fd, outbuff, strlen(outbuff), 0);
+    printf("on_server_read [%zu %s] \n", nsend, outbuff);
+
+}
+
+int myclient(int port, Reactor* actor)
+{
+
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (fd < 0)
+    {
+        printf("socket ERR!\n");
+        return -1;
+    }
+
+    set_socket_noblocking(fd);
+
+    connect(fd, (struct sockaddr*)&addr, sizeof(addr));
+
+    actor->add_event(fd, NULL, on_client_write, actor);
+
+
+    return 0;
+}
+
+
+void on_client_write(int fd, int event, void* u)
+{
+    printf("on client write !\n");
+
+    Reactor* actor = (Reactor*)u;
+
+    const char * p = "on client write !";
+    size_t nsend = send(fd, p, strlen(p), 0);
+    printf("nsend =[%zu %s] \n", nsend, p);
+    actor->add_event(fd, on_client_read, NULL, actor);
+
+}
+
+void on_client_read(int fd, int event, void* u)
+{
+    //Reactor* actor = (Reactor*)u;
+
+    char outbuff[8192] = {0};
+    size_t nrecv = recv(fd, outbuff, sizeof(outbuff), 0);
+    size_t nsend = send(fd, outbuff, strlen(outbuff), 0);
+    printf("on client read [%zu %zu %s]\n",nrecv, nsend, outbuff);
+
+    //actor->add_event(fd, on_client_read, NULL, actor);
+}
+
+
+void socket_no_pipe(int fd)
+{
+
+    const int value = 1;
+    setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &value, sizeof(value));
+
+}
 
 int main()
 {
 
     Reactor _actor;
+    mylistener(80, &_actor);
+    myclient(80, &_actor);
+
+    _actor.run_loop();
 
 
     return 0;
