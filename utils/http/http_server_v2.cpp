@@ -35,6 +35,10 @@ int mylistener(int port);
 
 void http_url_parse(const char* url);
 
+void http_url_parse2(const char* url);
+
+void test_http_url_parse();
+
 
 class Reactor;
 int myclient(int port, Reactor* acotor);
@@ -414,6 +418,121 @@ void http_url_parse(const char* url)
 }
 
 
+
+void http_url_parse2(const char* url)
+{
+
+    char* p = NULL;
+
+    p = strstr(url, "://");
+    if (p == NULL) {
+        printf("unknow protocal [%s]\n", url);
+        return;
+    }
+
+    int len = int(p - url);
+    if (len == 4 && strncasecmp(url, "http", 4) == 0) {
+        printf("got protocal http \n");
+    } else if (len == 4 && strncasecmp(url, "rtmp", 4) == 0) {
+        printf("got protocal rtmp \n");
+    } else if (len == 5 && strncasecmp(url, "rtmpe", 5) == 0) {
+        printf("got protocal rtmpe\n");
+    } else if (len == 5 && strncasecmp(url, "rtmps", 5) == 0) {
+        printf("got protocal rtmps\n");
+    } else if (len == 5 && strncasecmp(url, "https", 5) == 0) {
+        printf("got protocal https\n");
+    } else {
+        printf("got protocal unknow\n");
+    }
+
+    // skip "://"
+    p = p + 3;
+
+    char *slash = strchr(p, '/');
+    char* p2 = strchr(p, ':');
+    char* p3 = strchr(p, '?');
+
+    if (slash == NULL && p2 == NULL) {
+        printf("error !\n");
+        return;
+    }
+
+    // get host 
+    if (true) {
+
+        char host[256] = {0};
+
+        int hlen1 , hlen2;
+        hlen1 = hlen2 = 0;
+        if (slash) {
+            hlen1 = int(slash - p);
+        }
+
+        if (p2) {
+            hlen2 = int(p2 - p);
+        }
+
+        if (hlen2 > 0) {
+            memcpy(host, p, hlen2);
+        } else if (hlen2 == 0 && hlen1 > 0) {
+            memcpy(host, p, hlen1);
+        }
+
+        printf("got host [%s]\n", host);
+    }
+
+    // get port
+    if (true) {
+
+        int port = 80;
+
+        if (p2 && slash) {
+            int plen = int(slash - p2);
+            char pbuf[8] = {0};
+            memcpy(pbuf, p2 + 1, plen - 1);
+            port = atoi(pbuf);
+            printf("got port [%d]\n", port);
+        } else if (p2) {
+            char pbuf[8] = {0};
+            int plen = (int)strlen(p2);
+            memcpy(pbuf, p2 + 1, plen - 1);
+            port = atoi(pbuf);
+            printf("got port [%d]\n", port);
+        }
+    }
+
+
+    // get query
+    if (true) {
+
+        if (p3) {
+            char qbuf[256] = {0};
+            int qlen = (int)strlen(p3);
+            memcpy(qbuf, p3 + 1, qlen -1);
+            printf("got query %s\n", qbuf);
+        }
+
+    }
+
+}
+
+void test_http_url_parse()
+{
+    const char* u1 = "http://cc.cc.ee:190/ww";
+    const char* u2 = "https://www.baidu.com:22/d";
+    const char* u3 = "www.baidu.com:22";
+    const char* u4 = "https://www.baidu.com:22";
+    const char* u5 = "rtmps://www.baidu.com:22?name=22&cc=1";
+
+
+    http_url_parse2(u1);
+    http_url_parse2(u2);
+    http_url_parse2(u3);
+    http_url_parse2(u4);
+    http_url_parse2(u5);
+}
+
+
 int main()
 {
 
@@ -423,13 +542,7 @@ int main()
 
     // _actor.run_loop();
 
-
-    const char* u1 = "http://cc.cc.ee:190/ww";
-    const char* u2 = "https://www.baidu.com:22/d";
-    const char* u3 = "www.baidu.com:22";
-    http_url_parse(u1);
-    http_url_parse(u2);
-    http_url_parse(u3);
+    test_http_url_parse();
 
     return 0;
 }
