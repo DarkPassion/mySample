@@ -33,6 +33,8 @@ void socket_no_pipe(int fd);
 
 int mylistener(int port);
 
+void http_url_parse(const char* url);
+
 
 class Reactor;
 int myclient(int port, Reactor* acotor);
@@ -370,21 +372,64 @@ void on_client_read(int fd, int event, void* u)
 
 void socket_no_pipe(int fd)
 {
-
     const int value = 1;
     setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &value, sizeof(value));
+}
+
+void http_url_parse(const char* url)
+{
+
+    char url_buff[2048] = {0};
+    snprintf(url_buff, sizeof(url_buff) - 1, "%s", url);
+
+
+    // onley handle http protocal
+    if (strncasecmp(url_buff, "http", 4)) {
+
+        printf("url [%s] not support!\n", url_buff);
+        return ;
+    }
+
+    char* p1 = strchr(url_buff + 4, ':');
+    if (!p1 || strncmp(p1, "://", 3)) {
+        printf("bad request! \n");
+        return;
+    }
+
+    char host[256] = {0};
+    char* p2 = p1 + 3;
+    char* p3 = strchr(p2, '/');
+    int hlen = (int)(p3 - p2);
+    strncpy(host, p2, hlen);
+
+    printf("host :[%s]\n", host);
+
+    p1 = strrchr(host, ':');
+    if (p1) {
+        *p1++ = '\0';
+        int port = atoi(p1);
+        printf("port [%d]\n", port);
+    }
 
 }
+
 
 int main()
 {
 
-    Reactor _actor;
-    mylistener(80, &_actor);
-    myclient(80, &_actor);
+    // Reactor _actor;
+    // mylistener(80, &_actor);
+    // myclient(80, &_actor);
 
-    _actor.run_loop();
+    // _actor.run_loop();
 
+
+    const char* u1 = "http://cc.cc.ee:190/ww";
+    const char* u2 = "https://www.baidu.com:22/d";
+    const char* u3 = "www.baidu.com:22";
+    http_url_parse(u1);
+    http_url_parse(u2);
+    http_url_parse(u3);
 
     return 0;
 }
