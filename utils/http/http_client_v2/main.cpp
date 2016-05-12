@@ -145,7 +145,10 @@ void make_no_pipe()
 void test_http_client()
 {
     HttpClient client;
-    client.init_url(0, "http://www.csdn.net/");
+    // Upgrade-Insecure-Requests: 1
+
+    client.add_params("Upgrade-Insecure-Requests", "1");
+    client.init_url(0, "http://geek.csdn.net/news/detail/73610");
     client.get_response();
 }
 

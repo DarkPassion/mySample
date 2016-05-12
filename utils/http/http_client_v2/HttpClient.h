@@ -5,8 +5,8 @@
 #ifndef CLIONTEST_HTTPCLIENT_H
 #define CLIONTEST_HTTPCLIENT_H
 
+#include "HttpParser.h"
 
-class HttpParser;
 class HttpClient
 {
 
@@ -33,6 +33,7 @@ public:
 
     void init_url(int type, const char * url);
 
+    void add_params(const char* key, const char* val);
 
     void get_response();
 
@@ -47,9 +48,12 @@ private:
 
     int parser_url(const char* url, char* host, char* query, int & port);
 
+    std::string generate_request(int type, const char* host, const char* query, int port);
+
     HttpParser*         _parser;
     int                 _fd;
     int                 _error;
+    http_params_queue   _queue;
 };
 
 

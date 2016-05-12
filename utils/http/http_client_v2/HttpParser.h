@@ -10,17 +10,16 @@
 #include <string>
 #include <vector>
 
+struct http_parasm_t
+{
+    std::string key;
+    std::string val;
+};
+
+typedef std::vector<http_parasm_t*> http_params_queue;
+
 class HttpParser
 {
-public:
-    struct http_parasm_t
-    {
-        std::string key;
-        std::string val;
-    };
-
-    typedef std::vector<http_parasm_t*> http_params_queue;
-
 public:
     HttpParser();
 

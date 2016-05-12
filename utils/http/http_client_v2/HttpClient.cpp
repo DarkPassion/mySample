@@ -11,7 +11,6 @@
 #include <sstream>
 #include <string>
 #include "HttpClient.h"
-#include "HttpParser.h"
 
 
 HttpClient::HttpClient()
@@ -28,6 +27,13 @@ HttpClient::~HttpClient()
     {
         close(_fd);
     }
+
+    while (_queue.size()) {
+        http_parasm_t* p = _queue.at(0);
+        delete p;
+        _queue.erase(_queue.begin());
+    }
+
 }
 
 
@@ -107,22 +113,7 @@ void HttpClient::init_url(int type, const char *url)
         return;
     }
 
-    std::ostringstream ss;
-    const char * sep = "\r\n";
-    if (type == HTTP_GET)
-    {
-        ss << "GET ";
-    }
-    else
-    {
-        ss << "POST ";
-    }
-    ss <<"/ HTTP/1.1" << sep;
-    ss << "host: " << host << sep;
-    ss << "User-Agent: HttpClient/1.0" << sep;
-    ss << "Accept: */*" << sep << sep;
-
-    std::string msg = ss.str();
+    std::string msg = generate_request(type, host, query, port);
     printf("http client send message [%s] \n", msg.c_str());
     int len = strlen(msg.c_str());
 
@@ -145,6 +136,35 @@ void HttpClient::init_url(int type, const char *url)
         len = len - nsend;
     }
 
+}
+
+std::string HttpClient::generate_request(int type, const char *host, const char *query, int port)
+{
+    std::ostringstream ss;
+    const char * sep = "\r\n";
+    if (type == HTTP_GET)
+    {
+        ss << "GET ";
+    }
+    else
+    {
+        ss << "POST ";
+    }
+    ss << query <<" HTTP/1.1" << sep;
+    ss << "host: " << host << sep;
+    ss << "User-Agent: HttpClient/1.0" << sep;
+    ss << "Accept: */*" << sep;
+
+    for (int i = 0; i < _queue.size(); ++i) {
+        http_parasm_t* p = _queue.at(i);
+        ss << p->key << ": " << p->val << sep;
+    }
+    ss << sep;
+
+    std::string msg = ss.str();
+
+
+    return msg;
 }
 
 
@@ -202,6 +222,7 @@ int HttpClient::parser_url(const char* url, char* host, char* query, int & port)
     }
     else if (len == 5 && strncasecmp(url, "https", 5) == 0)
     {
+        // FIXME: https support
         printf("got protocal https\n");
         port = 443;
     }
@@ -216,7 +237,6 @@ int HttpClient::parser_url(const char* url, char* host, char* query, int & port)
 
     char *slash = strchr(p, '/');
     char* p2 = strchr(p, ':');
-    char* p3 = strchr(p, '?');
 
     if (slash == NULL && p2 == NULL)
     {
@@ -277,13 +297,26 @@ int HttpClient::parser_url(const char* url, char* host, char* query, int & port)
     if (true)
     {
 
-        if (p3)
+        if (slash)
         {
-            int qlen = (int)strlen(p3);
-            memcpy(query, p3 + 1, qlen -1);
+            int qlen = (int)strlen(slash);
+            memcpy(query, slash, qlen);
             printf("got query %s\n", query);
+        } else {
+            query[0] = '/';
         }
 
     }
     return 0;
+}
+
+
+void HttpClient::add_params(const char *key, const char *val)
+{
+    http_parasm_t* param = new http_parasm_t;
+    param->key = key;
+    param->val = val;
+    _queue.push_back(param);
+
+    printf("add params [%s %s] \n", key, val);
 }

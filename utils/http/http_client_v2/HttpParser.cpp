@@ -59,7 +59,10 @@ void HttpParser::init_with(int type)
 
 int HttpParser::parser_content(const char* indata, size_t inlen)
 {
-    http_parser_execute(_parser, _settings, indata, inlen);
+    int outlen = http_parser_execute(_parser, _settings, indata, inlen);
+    if (outlen != inlen) {
+        printf("http parser execute error ! \n");
+    }
     return _is_complete;
 }
 
