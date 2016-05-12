@@ -24,7 +24,8 @@ HttpClient::~HttpClient()
 {
     delete _parser;
 
-    if (_fd != -1) {
+    if (_fd != -1)
+    {
         close(_fd);
     }
 }
@@ -35,11 +36,13 @@ void HttpClient::get_response()
 
     _parser->init_with(HTTP_RESPONSE);
 
-    while (1) {
+    while (1)
+    {
         char buff[8192] = {0};
         int nrecv = ::recv(_fd, buff, sizeof(buff), 0);
 
-        if (nrecv <= 0) {
+        if (nrecv <= 0)
+        {
             break;
         }
 
@@ -47,7 +50,8 @@ void HttpClient::get_response()
 
         int complete = _parser->parser_content(buff, nrecv);
 
-        if (complete) {
+        if (complete)
+        {
             // content complete
             printf("get_response content complete ! \n");
             break;
@@ -60,7 +64,8 @@ void HttpClient::init_url(int type, const char *url)
 
     _fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    if (_fd < 0) {
+    if (_fd < 0)
+    {
         _error = HTTP_CLIENT_SOCKET_ERROR;
         return;
     }
@@ -72,7 +77,8 @@ void HttpClient::init_url(int type, const char *url)
     int port = 0;
 
     ret = parser_url(url, host, query, port);
-    if (ret < 0) {
+    if (ret < 0)
+    {
         _error = HTTP_CLIENT_PARSE_URL_ERROR;
         return;
     }
@@ -83,9 +89,11 @@ void HttpClient::init_url(int type, const char *url)
     addr.sin_port = htons(port);
     addr.sin_addr.s_addr = inet_addr(host);
 
-    if (addr.sin_addr.s_addr == INADDR_NONE) {
+    if (addr.sin_addr.s_addr == INADDR_NONE)
+    {
         struct hostent *hp = gethostbyname(host);
-        if (!hp || !hp->h_addr) {
+        if (!hp || !hp->h_addr)
+        {
             _error = HTTP_CLIENT_DSN_RESOLVER_ERROR;
             return;
         }
@@ -93,16 +101,20 @@ void HttpClient::init_url(int type, const char *url)
     }
 
     ret = ::connect(_fd, (struct sockaddr*)&addr, sizeof(addr));
-    if (ret < 0) {
+    if (ret < 0)
+    {
         _error = HTTP_CLIENT_CONNECT_ERROR;
         return;
     }
 
     std::ostringstream ss;
     const char * sep = "\r\n";
-    if (type == HTTP_GET) {
+    if (type == HTTP_GET)
+    {
         ss << "GET ";
-    } else {
+    }
+    else
+    {
         ss << "POST ";
     }
     ss <<"/ HTTP/1.1" << sep;
@@ -114,14 +126,19 @@ void HttpClient::init_url(int type, const char *url)
     printf("http client send message [%s] \n", msg.c_str());
     int len = strlen(msg.c_str());
 
-    while (len > 0) {
+    while (len > 0)
+    {
         int nsend = send(_fd, msg.c_str(), len, 0);
         printf("sys send [%d %d] \n", nsend, len);
-        if (nsend <= 0) {
+        if (nsend <= 0)
+        {
             // error
-            if (errno == EAGAIN) {
+            if (errno == EAGAIN)
+            {
                 continue;
-            } else {
+            }
+            else
+            {
                 break;
             }
         }
@@ -134,7 +151,8 @@ void HttpClient::init_url(int type, const char *url)
 void HttpClient::make_no_pipe(int fd)
 {
     const int value = 1;
-    if (true) {
+    if (true)
+    {
         setsockopt(_fd, SOL_SOCKET, SO_NOSIGPIPE, &value, sizeof(value));
     }
 }
@@ -170,19 +188,25 @@ int HttpClient::parser_url(const char* url, char* host, char* query, int & port)
     char* p = NULL;
 
     p = strstr(url, "://");
-    if (p == NULL) {
+    if (p == NULL)
+    {
         printf("unknow protocal [%s]\n", url);
         return -1;
     }
 
     int len = int(p - url);
-    if (len == 4 && strncasecmp(url, "http", 4) == 0) {
+    if (len == 4 && strncasecmp(url, "http", 4) == 0)
+    {
         printf("got protocal http \n");
         port = 80;
-    }  else if (len == 5 && strncasecmp(url, "https", 5) == 0) {
+    }
+    else if (len == 5 && strncasecmp(url, "https", 5) == 0)
+    {
         printf("got protocal https\n");
         port = 443;
-    } else {
+    }
+    else
+    {
         printf("got protocal unknow\n");
         return -1;
     }
@@ -194,26 +218,33 @@ int HttpClient::parser_url(const char* url, char* host, char* query, int & port)
     char* p2 = strchr(p, ':');
     char* p3 = strchr(p, '?');
 
-    if (slash == NULL && p2 == NULL) {
+    if (slash == NULL && p2 == NULL)
+    {
         printf("error !\n");
         return -1;
     }
 
     // get host
-    if (true) {
+    if (true)
+    {
         int hlen1 , hlen2;
         hlen1 = hlen2 = 0;
-        if (slash) {
+        if (slash)
+        {
             hlen1 = int(slash - p);
         }
 
-        if (p2) {
+        if (p2)
+        {
             hlen2 = int(p2 - p);
         }
 
-        if (hlen2 > 0) {
+        if (hlen2 > 0)
+        {
             memcpy(host, p, hlen2);
-        } else if (hlen2 == 0 && hlen1 > 0) {
+        }
+        else if (hlen2 == 0 && hlen1 > 0)
+        {
             memcpy(host, p, hlen1);
         }
 
@@ -221,14 +252,18 @@ int HttpClient::parser_url(const char* url, char* host, char* query, int & port)
     }
 
     // get port
-    if (true) {
-        if (p2 && slash) {
+    if (true)
+    {
+        if (p2 && slash)
+        {
             int plen = int(slash - p2);
             char pbuf[8] = {0};
             memcpy(pbuf, p2 + 1, plen - 1);
             port = atoi(pbuf);
             printf("got port [%d]\n", port);
-        } else if (p2) {
+        }
+        else if (p2)
+        {
             char pbuf[8] = {0};
             int plen = (int)strlen(p2);
             memcpy(pbuf, p2 + 1, plen - 1);
@@ -239,14 +274,16 @@ int HttpClient::parser_url(const char* url, char* host, char* query, int & port)
 
 
     // get query
-    if (true) {
+    if (true)
+    {
 
-        if (p3) {
+        if (p3)
+        {
             int qlen = (int)strlen(p3);
             memcpy(query, p3 + 1, qlen -1);
             printf("got query %s\n", query);
         }
 
     }
-   return 0;
+    return 0;
 }

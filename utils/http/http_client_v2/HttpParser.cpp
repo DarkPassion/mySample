@@ -31,7 +31,8 @@ HttpParser::~HttpParser()
     delete _parser;
     delete _settings;
 
-    while(_queue.size()) {
+    while(_queue.size())
+    {
         http_parasm_t* param = _queue.at(0);
         delete param;
         _queue.erase(_queue.begin());
@@ -42,9 +43,12 @@ HttpParser::~HttpParser()
 void HttpParser::init_with(int type)
 {
     http_parser_type t;
-    if (type == 0) {
+    if (type == 0)
+    {
         t = HTTP_REQUEST;
-    } else {
+    }
+    else
+    {
         t = HTTP_RESPONSE;
     }
 
@@ -96,7 +100,8 @@ int HttpParser::on_header_value(http_parser *p, const char *c, size_t s)
     HttpParser* parser = reinterpret_cast<HttpParser*>(p->data);
     char buff[256] = {0};
     snprintf(buff, sizeof(buff) - 1, "%.*s", (int)s, c);
-    if (parser->_header_curr_key.length() > 0) {
+    if (parser->_header_curr_key.length() > 0)
+    {
         http_parasm_t* param = new http_parasm_t;
         param->key = parser->_header_curr_key;
         param->val = buff;
@@ -137,11 +142,12 @@ int HttpParser::on_headers_complete(http_parser* p)
     printf("======= print http parser headers begin\n");
 
     HttpParser* parser = reinterpret_cast<HttpParser*>(p->data);
-    for (int i = 0; i < parser->_queue.size(); ++i) {
+    for (int i = 0; i < parser->_queue.size(); ++i)
+    {
         http_parasm_t* param = parser->_queue.at(i);
         printf(" %s = %s \n", param->key.c_str(), param->val.c_str());
     }
-    
+
     printf("======= print http parser headers end \n");
     return 0;
 }

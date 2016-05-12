@@ -59,7 +59,8 @@ void set_socket_noblocking(int fd)
 
 }
 
-int create_listener() {
+int create_listener()
+{
 
     int port = 10801;
     struct sockaddr_in addr;
@@ -71,14 +72,16 @@ int create_listener() {
     addr.sin_addr.s_addr = INADDR_ANY;
 
     int fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (fd < 0) {
+    if (fd < 0)
+    {
         printf("socket error!\n");
         return -1;
     }
 
     set_socket_reuseable(fd);
     int ret = ::bind(fd, (struct sockaddr *) &addr, sizeof(addr));
-    if (ret < 0) {
+    if (ret < 0)
+    {
         printf("bind error!\n");
         return -1;
     }
@@ -86,17 +89,20 @@ int create_listener() {
 
     ret = listen(fd, 10);
 
-    if (ret < 0) {
+    if (ret < 0)
+    {
         printf("listen error!\n");
         return -1;
     }
 
-    while (1) {
+    while (1)
+    {
         struct sockaddr_in client_addr;
         socklen_t len = sizeof(client_addr);
         memset(&client_addr, 0, sizeof(client_addr));
         int clientfd = ::accept(fd, (struct sockaddr *) &client_addr, &len);
-        if (clientfd > 0) {
+        if (clientfd > 0)
+        {
             printf("on_accept [%d %s]\n", clientfd, inet_ntoa(client_addr.sin_addr));
 
             char buff[256] = {0};
@@ -108,7 +114,8 @@ int create_listener() {
             close(clientfd);
 
         }
-        else {
+        else
+        {
             printf("accept error !\n");
             return -1;
         }
@@ -127,7 +134,8 @@ void make_no_pipe()
     sigemptyset(&sigact.sa_mask);
     sigact.sa_flags = 0;
 
-    if (sigaction(SIGPIPE, &sigact, NULL) < 0) {
+    if (sigaction(SIGPIPE, &sigact, NULL) < 0)
+    {
         printf("SIGPIPE SIG_ERR install fail!\n");
     }
 }
@@ -141,7 +149,8 @@ void test_http_client()
     client.get_response();
 }
 
-int main() {
+int main()
+{
     cout << "Hello, World!" << endl;
 
     make_no_pipe();

@@ -7,16 +7,19 @@
 
 
 class HttpParser;
-class HttpClient {
+class HttpClient
+{
 
 public:
 
-    enum {
+    enum
+    {
         HTTP_GET,
         HTTP_POST
     };
 
-    enum {
+    enum
+    {
         HTTP_CLIENT_SOCKET_ERROR = -100,
         HTTP_CLIENT_CONNECT_ERROR,
         HTTP_CLIENT_PARSE_URL_ERROR,

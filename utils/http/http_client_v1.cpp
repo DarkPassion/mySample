@@ -83,34 +83,38 @@ int http_client_dns_resolve(const char * url)
     int error;
     int s;
     const char *cause = NULL;
-    
+
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = PF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    
+
     error = getaddrinfo(url, "http", &hints, &res0);
-    
-    if (error) {
+
+    if (error)
+    {
         printf(" error == %s", gai_strerror(error));
         return -1;
     }
-    
+
     s = -1;
-    for (res = res0; res; res = res->ai_next) {
-        
+    for (res = res0; res; res = res->ai_next)
+    {
+
         printf("socket == [%d %d]\n", res->ai_socktype, res->ai_protocol);
         s = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-        if (s < 0) {
+        if (s < 0)
+        {
             cause = "socket";
             continue;
         }
-        
+
         // int socket
         // struct sockaddr* address
         // socklen_t address_len
         // connect(int socket, const struct sockaddr *address, socklen_t address_len);
 
-        if (connect(s, res->ai_addr, res->ai_addrlen) < 0) {
+        if (connect(s, res->ai_addr, res->ai_addrlen) < 0)
+        {
             printf("connect error !\n");
             s = -1;
             continue;
@@ -120,7 +124,7 @@ int http_client_dns_resolve(const char * url)
         printf("connect succ! [%s %d]\n", ip, ntohs(sockin->sin_port));
         break;  /* okay we got one */
     }
-    
+
     freeaddrinfo(res0);
 
     return s;
@@ -132,11 +136,12 @@ int http_clent_recvmessage(int fd)
     int recvlen = 0;
     int content_len = 0;
     int header_len = 0;
-    while (1) {
+    while (1)
+    {
 
         fd_set fds;
         int n;
-    
+
         // 10s timeout
         struct timeval tv;
         tv.tv_sec = 10;
@@ -150,15 +155,16 @@ int http_clent_recvmessage(int fd)
         {
             printf("timeout === \n");
             break;
-        } else if (n == -1)
+        }
+        else if (n == -1)
         {
             printf("select error !\n");
             break;
         }
-        
+
         char outbuff[8192] = {0};
         int nrecv = recv(fd, outbuff, sizeof(outbuff), 0);
-        
+
         if (recvlen == 0)
         {
             http_client_parse_header(outbuff, nrecv, content_len, header_len);
@@ -168,10 +174,11 @@ int http_clent_recvmessage(int fd)
         }
         recvlen += nrecv;
         printf("nrecv [%d]\n", nrecv);
-        if (nrecv <= 0) {
+        if (nrecv <= 0)
+        {
             break;
         }
-        
+
         if (content_len <= recvlen)
         {
             printf("recvlen eq content len\n");
@@ -179,7 +186,7 @@ int http_clent_recvmessage(int fd)
         }
         //printf("%s", outbuff);
     }
-    
+
     printf("all recv len [%d]\n", recvlen);
     close(fd);
 
@@ -188,7 +195,8 @@ int http_clent_recvmessage(int fd)
 
 int http_client_sendmessage(int fd, const char* url)
 {
-    if (fd < 1 || url == NULL) {
+    if (fd < 1 || url == NULL)
+    {
         printf("http client sendmessage params error !\n");
         return -1;
     }
@@ -200,7 +208,9 @@ int http_client_sendmessage(int fd, const char* url)
         if (c != NULL)
         {
             host = c;
-        } else {
+        }
+        else
+        {
             host = url;
         }
     }
@@ -211,13 +221,13 @@ int http_client_sendmessage(int fd, const char* url)
     ss << "host:" << host << sep;
     ss << "User-Agent: curl/7.43.0" << sep;
     ss << "Accept: */*" << sep << sep;
-    
+
     std::string msg = ss.str();
-    
+
     // set_socket_noblocking(fd);
     int len = strlen(msg.c_str());
     int nsend = send(fd, msg.c_str(), len, 0);
-    
+
     // printf("send message [%d %s]\n", len, msg.c_str());
     return 0;
 }
@@ -225,7 +235,8 @@ int http_client_sendmessage(int fd, const char* url)
 int http_client_multipart(int fd, const char* url)
 {
 
-    if (fd < 1 || url == NULL) {
+    if (fd < 1 || url == NULL)
+    {
         printf("http client sendmessage params error !\n");
         return -1;
     }
@@ -237,7 +248,9 @@ int http_client_multipart(int fd, const char* url)
         if (c != NULL)
         {
             host = c;
-        } else {
+        }
+        else
+        {
             host = url;
         }
     }
@@ -278,14 +291,14 @@ int http_client_multipart(int fd, const char* url)
     std::ostringstream ss;
     ss << "POST / HTTP/1.1" << sep;
     ss << "host:" << host << sep;
-    ss << "Content-Type:multipart/form-data; boundary=" << boundary << sep; 
+    ss << "Content-Type:multipart/form-data; boundary=" << boundary << sep;
     ss << "User-Agent: curl/7.43.0" << sep;
     ss << "Content-Length: " << clen << sep;
     ss << "Accept: */*" << sep << sep;
     ss << c;
-    
+
     std::string msg = ss.str();
-    
+
     // set_socket_noblocking(fd);
     int len = msg.size();
     int nsend = send(fd, msg.data(), len, 0);
@@ -300,12 +313,15 @@ void set_socket_noblocking(int fd)
     if (true)
     {
         int flags;
-        if ((flags = fcntl(fd, F_GETFL, NULL)) < 0) {
+        if ((flags = fcntl(fd, F_GETFL, NULL)) < 0)
+        {
             printf("fcntl F_GETFL fail !\n");
             return;
         }
-        if (!(flags & O_NONBLOCK)) {
-            if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        if (!(flags & O_NONBLOCK))
+        {
+            if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+            {
                 printf("fcntl F_SETFL fail\n");
                 return;
             }
@@ -323,12 +339,12 @@ void parse_http_param(char* indata, int inlen)
     HttpParam _queue;
     while (i < inlen)
     {
-       if (indata[i + 0] == '\r' && indata[i + 1] == '\n')
-       {
+        if (indata[i + 0] == '\r' && indata[i + 1] == '\n')
+        {
             indata[i + 0] = 0x0;
             indata[i + 1] = 0x0;
-       }
-       i++;
+        }
+        i++;
     }
 
     i = 0;
@@ -364,7 +380,7 @@ void parse_http_param(char* indata, int inlen)
 
         printf("http params [%s %s] \n", k.c_str(), v.c_str());
         iter++;
-    }    
+    }
 
     while (_queue.size())
     {
@@ -430,11 +446,14 @@ int get_http_content_len(char* http_response_header)
     {
         char * ptr = strstr(http_response_header + i, sep);
 
-        if (ptr == NULL) {
+        if (ptr == NULL)
+        {
             // not found!
             printf("not found!\n");
             break;
-        } else {
+        }
+        else
+        {
             char buff[1024] = {0};
             int offset = ptr - (http_response_header + i);
             memcpy(buff, http_response_header + i, offset);
@@ -443,9 +462,10 @@ int get_http_content_len(char* http_response_header)
             printf("%s\n", buff);
 
             char* c = strstr(buff, content_len);
-            if (c != NULL) {
+            if (c != NULL)
+            {
                 // find
-                
+
                 char* ipos = NULL;
                 int bfound_sep = 0;
                 for (int i = 0; i < offset; ++i)
@@ -463,7 +483,7 @@ int get_http_content_len(char* http_response_header)
                         break;
                     }
                 }
-                
+
                 printf("i found [%s %d]\n", content_len, icontent_len);
                 break;
             }
@@ -478,10 +498,11 @@ int main()
 {
 #if 1
     const char* url = "127.0.0.1";
-   
+
     int fd = http_client_dns_resolve(url);
-    
-    if (fd > 0) {
+
+    if (fd > 0)
+    {
         //http_client_sendmessage(fd, url);
         http_client_multipart(fd, url);
         http_clent_recvmessage(fd);

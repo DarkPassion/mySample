@@ -388,14 +388,16 @@ void http_url_parse(const char* url)
 
 
     // onley handle http protocal
-    if (strncasecmp(url_buff, "http", 4)) {
+    if (strncasecmp(url_buff, "http", 4))
+    {
 
         printf("url [%s] not support!\n", url_buff);
         return ;
     }
 
     char* p1 = strchr(url_buff + 4, ':');
-    if (!p1 || strncmp(p1, "://", 3)) {
+    if (!p1 || strncmp(p1, "://", 3))
+    {
         printf("bad request! \n");
         return;
     }
@@ -409,7 +411,8 @@ void http_url_parse(const char* url)
     printf("host :[%s]\n", host);
 
     p1 = strrchr(host, ':');
-    if (p1) {
+    if (p1)
+    {
         *p1++ = '\0';
         int port = atoi(p1);
         printf("port [%d]\n", port);
@@ -425,23 +428,35 @@ void http_url_parse2(const char* url)
     char* p = NULL;
 
     p = strstr(url, "://");
-    if (p == NULL) {
+    if (p == NULL)
+    {
         printf("unknow protocal [%s]\n", url);
         return;
     }
 
     int len = int(p - url);
-    if (len == 4 && strncasecmp(url, "http", 4) == 0) {
+    if (len == 4 && strncasecmp(url, "http", 4) == 0)
+    {
         printf("got protocal http \n");
-    } else if (len == 4 && strncasecmp(url, "rtmp", 4) == 0) {
+    }
+    else if (len == 4 && strncasecmp(url, "rtmp", 4) == 0)
+    {
         printf("got protocal rtmp \n");
-    } else if (len == 5 && strncasecmp(url, "rtmpe", 5) == 0) {
+    }
+    else if (len == 5 && strncasecmp(url, "rtmpe", 5) == 0)
+    {
         printf("got protocal rtmpe\n");
-    } else if (len == 5 && strncasecmp(url, "rtmps", 5) == 0) {
+    }
+    else if (len == 5 && strncasecmp(url, "rtmps", 5) == 0)
+    {
         printf("got protocal rtmps\n");
-    } else if (len == 5 && strncasecmp(url, "https", 5) == 0) {
+    }
+    else if (len == 5 && strncasecmp(url, "https", 5) == 0)
+    {
         printf("got protocal https\n");
-    } else {
+    }
+    else
+    {
         printf("got protocal unknow\n");
     }
 
@@ -452,29 +467,36 @@ void http_url_parse2(const char* url)
     char* p2 = strchr(p, ':');
     char* p3 = strchr(p, '?');
 
-    if (slash == NULL && p2 == NULL) {
+    if (slash == NULL && p2 == NULL)
+    {
         printf("error !\n");
         return;
     }
 
-    // get host 
-    if (true) {
+    // get host
+    if (true)
+    {
 
         char host[256] = {0};
 
         int hlen1 , hlen2;
         hlen1 = hlen2 = 0;
-        if (slash) {
+        if (slash)
+        {
             hlen1 = int(slash - p);
         }
 
-        if (p2) {
+        if (p2)
+        {
             hlen2 = int(p2 - p);
         }
 
-        if (hlen2 > 0) {
+        if (hlen2 > 0)
+        {
             memcpy(host, p, hlen2);
-        } else if (hlen2 == 0 && hlen1 > 0) {
+        }
+        else if (hlen2 == 0 && hlen1 > 0)
+        {
             memcpy(host, p, hlen1);
         }
 
@@ -482,17 +504,21 @@ void http_url_parse2(const char* url)
     }
 
     // get port
-    if (true) {
+    if (true)
+    {
 
         int port = 80;
 
-        if (p2 && slash) {
+        if (p2 && slash)
+        {
             int plen = int(slash - p2);
             char pbuf[8] = {0};
             memcpy(pbuf, p2 + 1, plen - 1);
             port = atoi(pbuf);
             printf("got port [%d]\n", port);
-        } else if (p2) {
+        }
+        else if (p2)
+        {
             char pbuf[8] = {0};
             int plen = (int)strlen(p2);
             memcpy(pbuf, p2 + 1, plen - 1);
@@ -503,9 +529,11 @@ void http_url_parse2(const char* url)
 
 
     // get query
-    if (true) {
+    if (true)
+    {
 
-        if (p3) {
+        if (p3)
+        {
             char qbuf[256] = {0};
             int qlen = (int)strlen(p3);
             memcpy(qbuf, p3 + 1, qlen -1);

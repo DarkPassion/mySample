@@ -10,9 +10,11 @@
 #include <string>
 #include <vector>
 
-class HttpParser {
+class HttpParser
+{
 public:
-    struct http_parasm_t {
+    struct http_parasm_t
+    {
         std::string key;
         std::string val;
     };
