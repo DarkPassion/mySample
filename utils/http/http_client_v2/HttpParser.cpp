@@ -127,6 +127,8 @@ int HttpParser::on_body(http_parser *p, const char *c, size_t s)
 {
     const char* tag = "HttpParser";
     printf("%s on_body \n", tag);
+    HttpParser* parser = reinterpret_cast<HttpParser*>(p->data);
+    parser->_body_content.append(c, s);
     return 0;
 }
 
@@ -156,3 +158,13 @@ int HttpParser::on_headers_complete(http_parser* p)
 }
 
 
+http_params_queue& HttpParser::get_http_header_params()
+{
+    return _queue;
+}
+
+
+std::string& HttpParser::get_http_body_content()
+{
+    return _body_content;
+}

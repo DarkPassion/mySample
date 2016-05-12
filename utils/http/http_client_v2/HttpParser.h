@@ -29,6 +29,11 @@ public:
 
     int parser_content(const char* idnata, size_t inlen);
 
+    http_params_queue& get_http_header_params();
+
+    std::string&  get_http_body_content();
+private:
+
     static int on_message_begin(http_parser* p);
 
     static int on_url(http_parser* p, const char* c, size_t s);
@@ -57,6 +62,7 @@ private:
     http_params_queue       _queue;
     std::string             _header_curr_key;
     int                     _is_complete;
+    std::string             _body_content;
 };
 
 

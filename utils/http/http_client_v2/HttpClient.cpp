@@ -63,6 +63,10 @@ void HttpClient::get_response()
             break;
         }
     }
+
+    // response http header params
+    http_params_queue q = _parser->get_http_header_params();
+    std::string body = _parser->get_http_body_content();
 }
 
 void HttpClient::init_url(int type, const char *url)
