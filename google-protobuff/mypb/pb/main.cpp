@@ -188,7 +188,7 @@ void ProtoBuffMgr::init_proto(std::string root_path)
         
         field = descriptor->FindFieldByName("passwd");
         
-        reflection->SetString(pair, field, "zhangzhifan");
+        reflection->SetString(pair, field, "sssppppp");
         
         cout << " pari debug string : " << pair->DebugString() << endl;
         
@@ -200,10 +200,26 @@ void ProtoBuffMgr::init_proto(std::string root_path)
             Message * msg = message->New();
             bool succ = msg->ParseFromString(encode_string);
             
-            const Reflection * ref = msg->GetReflection();
+            if (succ == false) {
+                fprintf(stdout, "parseFromString encode string ERR ! \n");
+                return;
+            }
             
-            const FileDescriptor* field2 = NULL;
+            const FieldDescriptor *field = NULL;
             
+            field = descriptor->FindFieldByName("acctID");
+            
+            int64 i = reflection->GetInt64(*msg, field);
+            
+            fprintf(stdout, "reflection GetInt64 %lld \n", i);
+            
+            field = descriptor->FindFieldByName("passwd");
+            
+            string s = reflection->GetString(*msg, field);
+            
+            fprintf(stdout, "reflection GetString %s \n", s.c_str());
+            
+            delete msg;
         }
         
         delete pair;
@@ -224,7 +240,7 @@ int main(int argc, const char * argv[]) {
     // insert code here...
     std::cout << "Hello, World!\n";
 
-    //test_dynamic_complie_proto();
+    test_dynamic_complie_proto();
     test_protpmgr_proto();
 
     return 0;
