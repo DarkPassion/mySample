@@ -1,7 +1,7 @@
 
 message message3 {
-          required int64 acctID = 1;
-          required string passwd = 2;
+          required int64 cmd = 1;
+          required string content = 2;
  }
 
 
