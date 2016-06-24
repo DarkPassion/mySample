@@ -143,7 +143,12 @@ public:
 protected:
     void write_int16(unsigned char* buff, int16 val);
     
-    void read_int16(unsigned char* buff, int16& val);
+    void read_int16(const unsigned char* buff, int16& val);
+    
+    int encode_message(const Message* pb_msg, std::string& result);
+    
+    int decode_message(const std::string & en_msg, Message** pb_msg);
+    
 private:
     Importer*    _import;
     DiskSourceTree*  _sourceTree;
@@ -259,7 +264,7 @@ void ProtoBuffMgr::init_proto(std::string root_path)
 }
 
 
-void ProtoBuffMgr::read_int16(unsigned char *buff, int16 &val)
+void ProtoBuffMgr::read_int16(const unsigned char *buff, int16 &val)
 {
     int i = 0;
     val = 0;
@@ -273,6 +278,149 @@ void ProtoBuffMgr::write_int16(unsigned char *buff, int16 val)
     buff[i++] = (val >> 8) & 0xff;
     buff[i++] = (val) & 0xff;
 }
+
+int ProtoBuffMgr::encode_message(const google::protobuf::Message *pb_msg, std::string& result)
+{
+    
+    int succ = -1;
+
+    result.clear();
+    const Descriptor *descriptor =   _import->pool()->FindMessageTypeByName("messageHeader");
+    
+    if (descriptor == NULL) {
+        fprintf(stdout, "importer pool FindMessageTypeByName ERROR ! \n");
+        succ = -1;
+        return succ;
+    }
+    
+    cout << "descriptor debug string "<< descriptor->DebugString() << endl;
+    
+    // build a dynamic message by "Pair" proto
+    DynamicMessageFactory factory;
+    
+    const Message *message = factory.GetPrototype(descriptor);
+    
+    // create a real instance of "Pair"
+    
+    Message *pair = message->New();
+    
+    // write the "Pair" instance by reflection
+    
+    const Reflection *reflection = pair->GetReflection();
+    
+    const FieldDescriptor *field = NULL;
+    
+    field = descriptor->FindFieldByName("cmd");
+    
+    reflection->SetInt64(pair, field, 10001);
+    
+    field = descriptor->FindFieldByName("msg_name");
+    
+    reflection->SetString(pair, field, pb_msg->GetTypeName().c_str());
+    
+    string s = pair->SerializeAsString();
+
+    int16 len = (int16)s.length();
+    
+    unsigned char len_buf[25] = {0};
+    write_int16(len_buf, len);
+
+    result.append((char*)len_buf, 2);
+    result.append(s);
+    
+    delete pair;
+    
+    if (true) {
+        s = pb_msg->SerializeAsString();
+        len = (int16)s.length();
+        write_int16(len_buf, len);
+        result.append((char*)len_buf, 2);
+        result.append(s);
+    }
+    
+   
+    return succ;
+}
+
+
+int ProtoBuffMgr::decode_message(const std::string &en_msg, google::protobuf::Message **pb_msg)
+{
+    int succ = -1;
+    
+    const Descriptor *descriptor =   _import->pool()->FindMessageTypeByName("messageHeader");
+    
+    if (descriptor == NULL) {
+        fprintf(stdout, "importer pool FindMessageTypeByName ERROR ! \n");
+        succ = -1;
+        return succ;
+    }
+    
+    cout << "descriptor debug string "<< descriptor->DebugString() << endl;
+    
+    // build a dynamic message by "Pair" proto
+    DynamicMessageFactory factory;
+    
+    const Message *message = factory.GetPrototype(descriptor);
+    
+    // create a real instance of "Pair"
+    
+    Message *pair = message->New();
+    
+    int16 header_len = 0;
+    
+    read_int16((const unsigned char*)en_msg.c_str(), header_len);
+    
+    
+    pair->ParseFromArray(en_msg.c_str() + 2, header_len);
+    
+    // write the "Pair" instance by reflection
+    
+    const Reflection *ref = pair->GetReflection();
+    
+    const FieldDescriptor *field = NULL;
+    
+    field = descriptor->FindFieldByName("cmd");
+    
+    int64 cmd = ref->GetInt64(*pair, field);
+    
+    field = descriptor->FindFieldByName("msg_name");
+    
+    std::string msg_name = ref->GetString(*pair, field);
+    
+    delete pair;
+    pair = NULL;
+    
+    // message body
+    if (true) {
+        const Descriptor *desc =   _import->pool()->FindMessageTypeByName(msg_name);
+        
+        if (desc == NULL) {
+            fprintf(stdout, "importer pool FindMessageTypeByName ERROR ! \n");
+            succ = -1;
+            return succ;
+        }
+        
+        // build a dynamic message by "Pair" proto
+        DynamicMessageFactory factory;
+        
+        const Message *message = factory.GetPrototype(descriptor);
+        
+        // create a real instance of "Pair"
+        
+        Message *pair = message->New();
+
+        int16 body_len = 0;
+        
+        read_int16((const unsigned char*)en_msg.c_str() + 2 + header_len, body_len);
+        
+        pair->ParseFromArray(en_msg.c_str() + 2 + header_len + 2, body_len);
+        
+        *pb_msg = pair;
+    }
+    
+    return succ;
+}
+
 
 void ProtoBuffMgr::read_message()
 {
@@ -397,51 +545,6 @@ void ProtoBuffMgr::read_message()
 
 void ProtoBuffMgr::write_message()
 {
-
-    const Descriptor *descriptor =   _import->pool()->FindMessageTypeByName("messageHeader");
-    
-    if (descriptor == NULL) {
-        fprintf(stdout, "importer pool FindMessageTypeByName ERROR ! \n");
-        
-        return;
-    }
-    
-    cout << "descriptor debug string "<< descriptor->DebugString() << endl;
-    
-    // build a dynamic message by "Pair" proto
-    DynamicMessageFactory factory;
-    
-    const Message *message = factory.GetPrototype(descriptor);
-    
-    // create a real instance of "Pair"
-    
-    Message *pair = message->New();
-    
-    // write the "Pair" instance by reflection
-    
-    const Reflection *reflection = pair->GetReflection();
-    
-    const FieldDescriptor *field = NULL;
-    
-    field = descriptor->FindFieldByName("cmd");
-    
-    reflection->SetInt64(pair, field, 10001);
-    
-    field = descriptor->FindFieldByName("msg_name");
-    
-    reflection->SetString(pair, field, "message1");
-    
-    string encode_string = pair->SerializeAsString();
-    
-    if (true) {
-        int16 len = (int16)encode_string.length();
-        unsigned char buff[25] = {0};
-        write_int16(buff, len);
-        FILE* f = fopen(_file_name.c_str(), "wb");
-        fwrite(buff, 2, 1, f);
-        fwrite(encode_string.c_str(), encode_string.length(), 1, f);
-        fclose(f);
-    }
     
     if (true) {
         const Descriptor *descriptor =   _import->pool()->FindMessageTypeByName("message1");
@@ -474,20 +577,20 @@ void ProtoBuffMgr::write_message()
         field = descriptor->FindFieldByName("content");
         
         reflection->SetString(pair, field, "=============11122222====|||3333");
-        
-        string encode_string = pair->SerializeAsString();
 
-        int16 len = (int16)encode_string.length();
-        unsigned char buff[25] = {0};
-        write_int16(buff, len);
-        FILE* f = fopen(_file_name.c_str(), "ab");
-        fwrite(buff, 2, 1, f);
-        fwrite(encode_string.c_str(), encode_string.length(), 1, f);
+        std::string result;
+        encode_message(pair, result);
+    
+        fprintf(stdout, "encode message len %zu \n", result.length());
+        
+        FILE* f = fopen(_file_name.c_str(), "wb");
+        
+        fwrite(result.c_str(), result.length(), 1, f);
         fclose(f);
+        
+        delete pair;
     }
     
-    
-    delete pair;
 }
 
 
