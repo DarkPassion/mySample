@@ -49,18 +49,25 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		9D8A22181CA2DFED0016FEF6 /* CopyFiles */ = {
+		9D8A22181CA2DFED0016FEF6 /* Copy Files */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
 			dstSubfolderSpec = 0;
 			files = (
 			);
+			name = "Copy Files";
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9D75EB8C1D16DBC3008482FD /* import.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = import.proto; sourceTree = "<group>"; };
+		9D75EB8D1D16DBC3008482FD /* message.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = message.proto; sourceTree = "<group>"; };
+		9D75EB8E1D16DBC3008482FD /* message1.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = message1.proto; sourceTree = "<group>"; };
+		9D75EB8F1D16DBC3008482FD /* message2.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = message2.proto; sourceTree = "<group>"; };
+		9D75EB901D16DBC3008482FD /* message3.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = message3.proto; sourceTree = "<group>"; };
+		9D75EB911D16DBC3008482FD /* message4.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = message4.proto; sourceTree = "<group>"; };
 		9D8A221A1CA2DFED0016FEF6 /* pb */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = pb; sourceTree = BUILT_PRODUCTS_DIR; };
 		9D8A221D1CA2DFED0016FEF6 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		9D8A227C1CA2E3540016FEF6 /* descriptor_database.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = descriptor_database.cc; path = google/protobuf/descriptor_database.cc; sourceTree = "<group>"; };
@@ -150,7 +157,6 @@
 		9D8A22F81CA381550016FEF6 /* template_util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = template_util.h; path = google/protobuf/stubs/template_util.h; sourceTree = "<group>"; };
 		9D8A22F91CA381550016FEF6 /* type_traits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = type_traits.h; path = google/protobuf/stubs/type_traits.h; sourceTree = "<group>"; };
 		9D8A23031CA382D30016FEF6 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
-		9D8A23061CA389F40016FEF6 /* message.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = message.proto; path = res/message.proto; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -165,6 +171,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9D75EB8B1D16DBC3008482FD /* res */ = {
+			isa = PBXGroup;
+			children = (
+				9D75EB8C1D16DBC3008482FD /* import.proto */,
+				9D75EB8D1D16DBC3008482FD /* message.proto */,
+				9D75EB8E1D16DBC3008482FD /* message1.proto */,
+				9D75EB8F1D16DBC3008482FD /* message2.proto */,
+				9D75EB901D16DBC3008482FD /* message3.proto */,
+				9D75EB911D16DBC3008482FD /* message4.proto */,
+			);
+			path = res;
+			sourceTree = "<group>";
+		};
 		9D8A22111CA2DFED0016FEF6 = {
 			isa = PBXGroup;
 			children = (
@@ -185,7 +204,7 @@
 		9D8A221C1CA2DFED0016FEF6 /* pb */ = {
 			isa = PBXGroup;
 			children = (
-				9D8A23051CA389B90016FEF6 /* res */,
+				9D75EB8B1D16DBC3008482FD /* res */,
 				9D8A22241CA2E03A0016FEF6 /* google */,
 				9D8A221D1CA2DFED0016FEF6 /* main.cpp */,
 			);
@@ -317,14 +336,6 @@
 			name = stubs;
 			sourceTree = "<group>";
 		};
-		9D8A23051CA389B90016FEF6 /* res */ = {
-			isa = PBXGroup;
-			children = (
-				9D8A23061CA389F40016FEF6 /* message.proto */,
-			);
-			name = res;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -334,7 +345,7 @@
 			buildPhases = (
 				9D8A22161CA2DFED0016FEF6 /* Sources */,
 				9D8A22171CA2DFED0016FEF6 /* Frameworks */,
-				9D8A22181CA2DFED0016FEF6 /* CopyFiles */,
+				9D8A22181CA2DFED0016FEF6 /* Copy Files */,
 			);
 			buildRules = (
 			);
@@ -541,6 +552,7 @@
 				9D8A22231CA2DFED0016FEF6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
