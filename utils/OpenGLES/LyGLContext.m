@@ -10,11 +10,17 @@
 
 void runSynchronouslyOnGLProcessingQueue(LyGLContext * glctx, void (^block)(void))
 {
+    EAGLContext* context = [EAGLContext currentContext];
+    
     dispatch_queue_t videoProcessingQueue = [glctx contextQueue];
     if (dispatch_get_specific([glctx contextKey])){
         block();
     }else{
         dispatch_sync(videoProcessingQueue, block);
+    }
+    
+    if ([EAGLContext currentContext] != context) {
+        [EAGLContext setCurrentContext:context];
     }
 }
 
@@ -169,6 +175,14 @@ void runAsynchronouslyOnGLProcessingQueue(LyGLContext * glctx, void (^block)(voi
         }
     }
     return _coreVideoTextureCache;
+}
+
+- (void) dealloc
+{
+    if (_coreVideoTextureCache) {
+        CFRelease(_coreVideoTextureCache);
+    }
+
 }
 
 @end

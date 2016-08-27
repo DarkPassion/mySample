@@ -11,7 +11,7 @@
 
 @interface LyGLFrameBufferCache : NSObject
 
-@property (readwrite, nonatomic) LyGLContext* glContext;
+@property (readwrite, weak) LyGLContext* glContext;
 
 - (LyGLFrameBuffer *)fetchFramebufferForSize:(CGSize)framebufferSize;
 

@@ -52,4 +52,11 @@ static NSString * FrameBufferCachedKeyforSize(CGSize size) {
     
     return framebuffer;
 }
+
+- (void) dealloc
+{
+    [_framebufferCache removeAllObjects];
+    _framebufferCache = nil;
+}
+
 @end

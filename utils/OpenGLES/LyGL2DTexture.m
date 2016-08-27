@@ -10,11 +10,18 @@
 #import "LyGLContext.h"
 @import UIKit;
 
-@implementation LyGL2DTexture
+@interface LyGL2DTexture()
 {
     CVOpenGLESTextureRef _inputImageTexture;
-    LyGLContext*    _glContext;
 }
+
+@property (nonatomic, weak)   LyGLContext*    glContext;
+
+@end
+
+
+@implementation LyGL2DTexture
+
 
 - (void)bindTextureWithCGImage:(CGImageRef)imageref
 {

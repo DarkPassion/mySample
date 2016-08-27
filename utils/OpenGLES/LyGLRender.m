@@ -213,7 +213,7 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
 
 
 
-- (void)renderPixelBuffer:(CVPixelBufferRef)pixbuffer atFramebuffer:(LyGLFrameBuffer *)framebuffer inVertex:(NSArray*)inVertex;
+- (void)renderPixelBuffer:(CVPixelBufferRef)pixbuffer atFramebuffer:(LyGLFrameBuffer *)framebuffer inVertex:(NSArray*)inVertex
 {
     runSynchronouslyOnGLProcessingQueue(_glContext, ^{
         [_glContext setActiveShaderProgram:_filterProgram];
@@ -227,7 +227,7 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
     
 }
 
-- (void)offScreenRenderYUV:(CVPixelBufferRef)pixbuffer atFramebuffer:(LyGLFrameBuffer*)framebuffer rawYuv420:(unsigned char*) rawdata;
+- (void)offScreenRenderYUV:(CVPixelBufferRef)pixbuffer atFramebuffer:(LyGLFrameBuffer*)framebuffer rawYuv420:(unsigned char*) rawdata
 {
     runSynchronouslyOnGLProcessingQueue(_glContext, ^{
         [_glContext setActiveShaderProgram:_filterProgram];
@@ -239,6 +239,21 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
         [self doRender:pixbuffer backgroundTexture:aTexture rawYuv420:rawdata];
         
     });
+}
+
+- (void) offScreenRenderRGBA:(CVPixelBufferRef)pixbuffer atFramebuffer:(LyGLFrameBuffer *)framebuffer rawRGBA:(unsigned char *)rawdata
+{
+    runSynchronouslyOnGLProcessingQueue(_glContext, ^{
+        [_glContext setActiveShaderProgram:_filterProgram];
+        
+        LyGL2DTexture *aTexture = [[LyGL2DTexture alloc] initWithPixelBuffer:pixbuffer glContext:_glContext];
+        
+        [framebuffer activateFramebuffer];
+        
+        [self doRender:pixbuffer backgroundTexture:aTexture rawRGBA:rawdata];
+        
+    });
+
 }
 
 
@@ -340,6 +355,10 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
 
 }
 
+- (void) doRender:(CVPixelBufferRef)ref backgroundTexture:(LyGL2DTexture *)texture rawRGBA:(unsigned char *)rawdata
+{
+
+}
 
 - (LyGLFrameBuffer*) fetchFramebufferForSize:(CGSize)framebufferSize
 {
@@ -350,5 +369,12 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
     return nil;
 }
 
+- (void) dealloc
+{
+    _glFrameBufferCache.glContext = nil;
+    _glFrameBufferCache = nil;
+    _filterProgram = nil;
+    _glContext = nil;
+}
 
 @end

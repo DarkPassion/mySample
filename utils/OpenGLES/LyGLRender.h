@@ -34,6 +34,8 @@ extern NSString *const kGLRenderFragmentShaderString;
 // 定义接口 基础类未实现 [连麦yuv 离屏渲染流程]
 - (void) doRender : (CVPixelBufferRef) ref backgroundTexture:(LyGL2DTexture*) texture rawYuv420: (unsigned char*) rawdata;
 
+// 定义接口 基础类未实现 [Urho3d 图像合成]
+- (void) doRender : (CVPixelBufferRef) ref backgroundTexture:(LyGL2DTexture*) texture rawRGBA: (unsigned char*) rawdata;
 
 // init
 - (id)initWithVertexShaderFromString:(NSString *)vertexShaderString fragmentShaderFromString:(NSString *)fragmentShaderString
@@ -51,8 +53,8 @@ extern NSString *const kGLRenderFragmentShaderString;
 // 连麦yuv 离屏渲染流程
 - (void)offScreenRenderYUV:(CVPixelBufferRef)pixbuffer atFramebuffer:(LyGLFrameBuffer*)framebuffer rawYuv420:(unsigned char*) rawdata;
 
-
-
+// urho3d 图像合成
+- (void)offScreenRenderRGBA:(CVPixelBufferRef)pixbuffer atFramebuffer:(LyGLFrameBuffer*)framebuffer rawRGBA:(unsigned char*) rawdata;
 
 //主屏渲染
 - (void)renderPixelBuffer:(CVPixelBufferRef)pixbuffer onMainScreen:(CGSize)size;

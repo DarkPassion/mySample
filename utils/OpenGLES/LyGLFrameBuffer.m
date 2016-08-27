@@ -8,15 +8,20 @@
 
 #import "LyGLFrameBuffer.h"
 
-@implementation LyGLFrameBuffer
+@interface LyGLFrameBuffer()
 {
     GLuint _framebuffer;
     
     CVOpenGLESTextureRef _renderTexture;
     GLuint _texture;
-    LyGLContext* _glContext;
 }
 
+@property (nonatomic, weak) LyGLContext* glContext;
+
+
+@end
+
+@implementation LyGLFrameBuffer
 
 
 - (id)initWithSize:(CGSize)framebufferSize glContext: (LyGLContext*) glcontext;
