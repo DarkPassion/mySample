@@ -9,7 +9,7 @@
 #define _CR_LOG_WARN  2
 #define _CR_LOG_ERROR 3
 
-using namespace std;
+//using namespace std;
 
 #define LOGD    log::cr_debug
 

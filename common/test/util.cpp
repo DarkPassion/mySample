@@ -19,13 +19,13 @@ struct obj0_t
 void test_util()
 {
 	char* tmp = new char[100];
-	AutoFreeClassA(char, tmp);
+	AutoDeleteScopePtr(char, tmp);
 
 	char* tmp1 = new char;
-	AutoFreeClass(char, tmp1);
+	AutoDeleteScopePtr(char, tmp1);
 
 	obj0_t * obj0 = new obj0_t;
-	AutoFreeClass(obj0_t, obj0);
+	AutoFreeScopePtr(obj0_t, obj0);
 
 	if (obj0)
 	{
@@ -39,7 +39,7 @@ void test_util()
 	/*
 		some process with obj0
 	 */
-	
+
 	obj0_t* obja = new obj0_t[10];
 	AutoDeleteScopePtr(obj0_t[], obja);
 
