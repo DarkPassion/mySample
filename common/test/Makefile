@@ -38,7 +38,10 @@ util:
 json:
 	@($(CC) -I$(INC_PATH) $(LIB_PATH) json.cpp -o json.out)
 
-all:  block_queue byte_buffer digest queue scoped_ptr task_test thread timer util
+dns_detect:
+	@($(CC) -I$(INC_PATH) $(LIB_PATH) dns_detect.cpp -o dns_detect.out)
+
+all:  block_queue byte_buffer digest queue scoped_ptr task_test thread timer util dns_detect
 
 
 clean:
