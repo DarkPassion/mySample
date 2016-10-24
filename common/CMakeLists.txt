@@ -13,21 +13,23 @@ ${PROJECT_SOURCE_DIR}/3rd/jsoncpp/include)
 
 set(CMAKE_CXX_FLAGS "-DWEBRTC_POSIX -g -DUSE_GNUTLS -Wall -O2 -D_CONSOLE -pipe -Wno-invalid-offsetof -fcheck-new -D_REENTRANT")
 
+file(GLOB STRING src/string/*.cpp)
+file(GLOB DIGEST src/digest/*.cpp)
+file(GLOB THREAD src/thread/*.cpp)
+file(GLOB UTIL src/util/*.cpp)
+file(GLOB QUEUE src/queue/*.cpp)
+file(GLOB TIMER src/timer/*.cpp)
+file(GLOB TASK src/task/*.cpp)
+
 set (LIB_SRC
-src/string/stringutils.cpp
-src/string/stringencode.cpp
-src/digest/md5.cpp
-src/digest/base64.cpp
-src/digest/crc32.cpp 
-src/thread/thread.cpp
-src/thread/lock.cpp
-src/util/util.cpp
-src/util/bytebuffer.cpp
-src/util/log.cpp
-src/util/json.cpp
-src/queue/queue.cpp
-src/queue/block_queue.cpp
-src/timer/timer.cpp)
+    ${STRING}
+    ${DIGEST}
+    ${THREAD}
+    ${UTIL}
+    ${QUEUE}
+    ${TIMER}
+    ${TASK}
+)
 
 
 add_library(common${MYVER}
