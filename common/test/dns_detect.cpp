@@ -109,15 +109,25 @@ private:
 				continue;
 			}
 
+			struct sockaddr_in sa;
+			memcpy(&sa, res->ai_addr, sizeof(sa));
+			if (true) {
+				char buff[512] = {0};
+				if (getnameinfo((struct sockaddr*)&sa, sizeof(sa),  buff, sizeof(buff) - 1, NULL, 0, 0 ) != 0) {
+					LOGD("===== socket getnameinfo error %s strerror(error)", strerror(errno));
+				} else {
+					LOGD("==== socket getnameinfo buff %s ", buff);
+				}
+			}
+			struct sockaddr_in * sinp = (struct sockaddr_in*) res->ai_addr;
 			if (connect(s, res->ai_addr, res->ai_addrlen) < 0) {
-				struct sockaddr_in * sinp = (struct sockaddr_in*) res->ai_addr;
-				LOGD("==== socket connect %s ip: %s ai_canonname:%s port %d", __FUNCTION__, inet_ntoa(*(struct in_addr*)res->ai_addr), res->ai_canonname, ntohs(sinp->sin_port));
 				LOGD("===== socket connect error %s ", strerror(errno));
 				close(s);
 				continue;
 			}
 
-			LOGD("==== socket connect %s succ  ai_canonname:%s", __FUNCTION__, inet_ntoa(*(struct in_addr*)res->ai_addr), res->ai_canonname);
+
+			LOGD("==== socket connect %s succ  ip:%s ai_canonname:%s", __FUNCTION__, inet_ntoa(*(struct in_addr*) &sa ), res->ai_canonname);
 			close(s);
 		}
 		freeaddrinfo(res0);

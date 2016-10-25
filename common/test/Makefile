@@ -2,6 +2,7 @@
 
 CC=g++
 AR=ar
+GCC=gcc
 
 RM=rm -f
 INC_PATH="../include"
@@ -41,7 +42,10 @@ json:
 dns_detect:
 	@($(CC) -I$(INC_PATH) $(LIB_PATH) dns_detect.cpp -o dns_detect.out)
 
-all:  block_queue byte_buffer digest queue scoped_ptr task_test thread timer util dns_detect
+gfw_dns_resolver:
+	@($(GCC) -I$(INC_PATH) $(LIB_PATH)  gfw_dns_resolver.c -o gfw_dns_resolver.out)
+
+all:  block_queue byte_buffer digest queue scoped_ptr task_test thread timer util dns_detect gfw_dns_resolver
 
 
 clean:
