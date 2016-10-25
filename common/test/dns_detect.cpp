@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <errno.h>
 #include "thread/thread.h"
 #include "thread/lock.h"
 #include "queue/block_queue.h"
@@ -93,11 +94,11 @@ private:
         memset(&hints, 0, sizeof(hints));
         hints.ai_family = PF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
-        hints.ai_flags = AI_PASSIVE;
-        error = getaddrinfo(NULL, "http", &hints, &res0);
+        error = getaddrinfo(host, "http", &hints, &res0);
 
 		if (error != 0) {
-			LOGD("===== getaddrinfo error %s", __FUNCTION__);
+			LOGD("===== getaddrinfo error %s %s", __FUNCTION__, strerror(errno));
+			LOGD("===== getaddrinfo error %s %s", __FUNCTION__, gai_strerror(error));
 			return ;
 		}
 
@@ -109,8 +110,9 @@ private:
 			}
 
 			if (connect(s, res->ai_addr, res->ai_addrlen) < 0) {
-				struct socketaddr_in* iadr = (struct socketaddr_in*) res->ai_addr;
-				LOGD("==== socket connect %s ip: %s ai_canonname:%s ", __FUNCTION__, inet_ntoa(*(struct in_addr*)res->ai_addr), res->ai_canonname);
+				struct sockaddr_in * sinp = (struct sockaddr_in*) res->ai_addr;
+				LOGD("==== socket connect %s ip: %s ai_canonname:%s port %d", __FUNCTION__, inet_ntoa(*(struct in_addr*)res->ai_addr), res->ai_canonname, ntohs(sinp->sin_port));
+				LOGD("===== socket connect error %s ", strerror(errno));
 				close(s);
 				continue;
 			}
