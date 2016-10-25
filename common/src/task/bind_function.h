@@ -1,6 +1,6 @@
 
-#ifndef _UTIL_BIND_FUNCTION_H_
-#define _UTIL_BIND_FUNCTION_H_
+#ifndef _TASK_BIND_FUNCTION_H_
+#define _TASK_BIND_FUNCTION_H_
 
 #include <stdlib.h>
 #include "bind_base.h"

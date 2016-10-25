@@ -1,5 +1,5 @@
-#ifndef _UTIL_BIND_OBJECT_H_
-#define _UTIL_BIND_OBJECT_H_
+#ifndef _TASK_BIND_OBJECT_H_
+#define _TASK_BIND_OBJECT_H_
 
 #include <stdlib.h>
 #include "bind_base.h"

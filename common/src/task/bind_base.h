@@ -1,5 +1,5 @@
-#ifndef _UTIL_BIND_BASE_H_
-#define _UTIL_BIND_BASE_H_
+#ifndef _TASK_BIND_BASE_H_
+#define _TASK_BIND_BASE_H_
 
 
 class bind_base_t

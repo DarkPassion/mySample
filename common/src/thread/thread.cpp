@@ -89,8 +89,7 @@ int ThreadImp::stop()
 
     if (_joinable && _pth)
     {
-        // pthread_join(_pth, NULL);
-        pthread_detach(_pth);
+        pthread_join(_pth, NULL);
         LOGD("ThreadImp [%s] pthread_detach", _name);
     }
 
