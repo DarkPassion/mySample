@@ -2,6 +2,7 @@
 #define _THREAD_LOCK_H_
 
 #include <pthread.h>
+#include <semaphore.h>
 #include "util/util.h"
 
 class ILock
@@ -28,9 +29,8 @@ public:
     
     void wait();
     
-    DISALLOW_COPY_AND_ASSIGN(CCond);
-    
 private:
+    DISALLOW_COPY_AND_ASSIGN(CCond);
     CMutex&     _lock;
     pthread_cond_t  _cond;
 };
@@ -47,13 +47,11 @@ public:
 
     virtual void unlock();
 
-    DISALLOW_COPY_AND_ASSIGN(CMutex);
-    
     friend class CCond;
 private:
+    DISALLOW_COPY_AND_ASSIGN(CMutex);
     pthread_mutex_t _mutex;
 };
-
 
 
 class AutoLock
@@ -65,8 +63,27 @@ public:
     ~AutoLock();
 
 private:
+    DISALLOW_COPY_AND_ASSIGN(AutoLock);
     ILock&     _lock;
 
 };
 
+
+class CSem
+{
+public:
+    
+    CSem(int num);
+    
+    ~CSem();
+    
+    void signal_up();
+    
+    void signal_down();
+    
+private:
+    DISALLOW_COPY_AND_ASSIGN(CSem);
+    sem_t   _sem;
+    
+};
 #endif

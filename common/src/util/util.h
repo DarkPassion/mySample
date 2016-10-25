@@ -16,6 +16,7 @@ void operator=(const TypeName&)
 // This should be used in the private: declarations for a class.
 #undef DISALLOW_COPY_AND_ASSIGN
 #define DISALLOW_COPY_AND_ASSIGN(TypeName)    \
+private:                                      \
 TypeName(const TypeName&);                    \
 DISALLOW_ASSIGN(TypeName)
 

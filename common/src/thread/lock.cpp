@@ -55,3 +55,23 @@ AutoLock::~AutoLock()
 {
     _lock.unlock();
 }
+
+CSem::CSem(int num)
+{
+    sem_init(&_sem, 0, num);
+}
+
+CSem::~CSem()
+{
+    sem_destroy(&_sem);
+}
+
+void CSem::signal_up()
+{
+    sem_post(&_sem);
+}
+
+void CSem::signal_down()
+{
+    sem_wait(&_sem);
+}
