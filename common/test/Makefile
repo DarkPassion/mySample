@@ -8,6 +8,9 @@ RM=rm -f
 INC_PATH="../include"
 LIB_PATH="../libs/libcommon.a"
 
+# "-Wno-xxxx" remove gcc warning
+CFLAGS="-Wno-local-type-template-args"
+
 default: all
 block_queue:
 	@($(CC) -I$(INC_PATH) $(LIB_PATH) block_queue.cpp -o block_queue.out)
@@ -25,7 +28,7 @@ scoped_ptr:
 	@($(CC) -I$(INC_PATH) $(LIB_PATH) scoped_ptr.cpp -o scoped_ptr.out)
 
 task_test:
-	@($(CC) -I$(INC_PATH) $(LIB_PATH) task_test.cpp -o task_test.out)
+	@($(CC) -I$(INC_PATH) $(LIB_PATH) $(CFLAGS) task_test.cpp -o task_test.out)
 
 thread:
 	@($(CC) -I$(INC_PATH) $(LIB_PATH) thread.cpp -o thread.out)

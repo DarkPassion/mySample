@@ -14,6 +14,7 @@ void test_bind_function3();
 void test_bind_function4();
 
 void test_bind_object0();
+void test_bind_func_obj0();
 void test_bind_object1();
 void test_bind_object2();
 void test_bind_object3();
@@ -81,6 +82,23 @@ void test_bind_function4()
     t();
 }
 
+
+void test_bind_func_obj0()
+{
+    struct obj0
+    {
+        void invoke()
+        {
+            printf("func obj0 invoke == \n");
+        }
+    };
+
+    typedef void(obj0::*pf)();
+    obj0 _obj;
+    pf _pf = &obj0::invoke;
+    task_t t = task_t::bind_memfunc<obj0*, pf>(&_obj, _pf);
+    t();
+}
 
 class obj0
 {
@@ -189,6 +207,7 @@ int main()
     test_bind_object3();
     test_bind_object4();
 
+    test_bind_func_obj0();
     return 0;
 }
 
