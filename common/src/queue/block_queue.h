@@ -60,7 +60,7 @@ public:
             freep(val);
 
         }
- }
+    }
 
     size_t size()
     {
