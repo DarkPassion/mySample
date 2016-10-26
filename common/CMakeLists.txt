@@ -20,6 +20,7 @@ file(GLOB UTIL src/util/*.cpp)
 file(GLOB QUEUE src/queue/*.cpp)
 file(GLOB TIMER src/timer/*.cpp)
 file(GLOB TASK src/task/*.cpp)
+file(GLOB NETWORK src/network/*.cpp)
 
 set (LIB_SRC
     ${STRING}
@@ -29,6 +30,7 @@ set (LIB_SRC
     ${QUEUE}
     ${TIMER}
     ${TASK}
+    ${NETWORK}
 )
 
 
