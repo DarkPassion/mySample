@@ -52,13 +52,14 @@ void dump_http_context(struct http_context* c)
 struct http_context* get_http_context(int id)
 {
     printf("get_http_context %d \n", id);
-    int i = 0;
-    for (; i < MAX_CLIENTS; i++) {
 
-        struct http_context* c = H[i];
-        if (c && c->id == id) {
-            return c;
-        }
+    if (id <= 0 || id > MAX_CLIENTS) {
+        printf("error id <= 0 || id > MAX_CLIENTS !\n");
+        return NULL;
+    }
+    struct http_context* c = H[id];
+    if (c && c->id == id) {
+        return c;
     }
     return NULL;
 }
