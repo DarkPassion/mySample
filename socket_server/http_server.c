@@ -15,7 +15,9 @@ struct http_context
 {
     char buf[2048];
     int len;
-    int id;
+    int id;  // client socket
+    char cip[20]; // client ip
+    int cport; // client port
 };
 
 struct http_context* H[MAX_CLIENTS] = {NULL};
@@ -46,6 +48,7 @@ void dump_http_context(struct http_context* c)
         i += strlen(p + i) + 2;
         s[0] = '\r';
     }
+    printf("client ip [%s] port [%d] \n", c->cip, c->cport);
 }
 
 
@@ -120,6 +123,7 @@ void handle_message(struct socket_server*ss, struct socket_message* msg)
 
 }
 
+
 static void *
 _poll(void * ud) {
 	struct socket_server *ss = ud;
@@ -150,6 +154,15 @@ _poll(void * ud) {
             struct http_context* c = (struct http_context*) malloc(sizeof(struct http_context));
             memset(c, 0, sizeof(struct http_context));
             c->id = result.ud;
+            char* cpdata = strdup(result.data);
+            char* p = strchr(cpdata, ':');
+            if (p) {
+                p[0] = '\0';
+                strcpy(c->cip, cpdata);
+                c->cport = atoi(p+1);
+                p[0] = ':';
+            }
+            free(cpdata);
             add_http_context(c);
             socket_server_start(ss, 1000, result.ud);
 			break;
