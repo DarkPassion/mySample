@@ -119,7 +119,7 @@ public:
         return str;
     }
 
-    void append(const char* fmt, ...)
+    void appendPrintf(const char* fmt, ...)
     {
         va_list args;
         va_start(args, fmt);
@@ -129,6 +129,20 @@ public:
         if (ret <= sizeof(buf) && ret > 0)
         {
             append(buf, ret);
+        }
+        else
+        {
+            char * tmp = new char[ret];
+            va_list args;
+            va_start(args, fmt);
+            int size = vsnprintf(tmp, ret, fmt, args);
+            if (size != ret)
+            {
+                printf("error ! vsnprintf new char[%d] \n", ret);
+            }
+            va_end(args);
+            append(tmp, ret);
+            delete [] tmp;
         }
         va_end(args);
     }

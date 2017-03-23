@@ -48,7 +48,14 @@ int main()
 
     {
         Buffer buf;
-        buf.append("hello %s hh %d\n", "world", 1213);
+        buf.appendPrintf("hello %s hh %d\n", "world", 1213);
+        std::string s = buf.retrieveAsString();
+        std::cout << "buf.retrieveAsString " << s << std::endl;
+    }
+
+    {
+        Buffer buf;
+        buf.appendPrintf("hello  %01025d\n", 0); // this is very long string
         std::string s = buf.retrieveAsString();
         std::cout << "buf.retrieveAsString " << s << std::endl;
     }
