@@ -25,7 +25,8 @@ static void sp_nonblocking(int sock);
 #endif
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined (__NetBSD__)
-#include "socket_kqueue.h"
+//#include "socket_kqueue.h"
+#include "socket_select.h"
 #endif
 
 #endif
