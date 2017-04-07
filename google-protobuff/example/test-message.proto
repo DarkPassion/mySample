@@ -1,0 +1,13 @@
+
+package BaoBao.hello;
+
+message Request
+{
+    required string name = 1;
+    required string addres = 2;
+    required string from = 3;
+}
+
+
+
+
