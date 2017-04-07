@@ -8,7 +8,7 @@
 #include "google/protobuf/descriptor.h"
 #include "google/protobuf/dynamic_message.h"
 #include "google/protobuf/compiler/importer.h"
-// g++ test-main-0.cc -I./../include/ -L./../libs/ -lprotobuf -o test-main-0.out
+// g++ test-main-0.cc -I./../include/ -L./../libs/ -lprotobuf -O0 -g -o test-main-0.out
 
 
 using namespace google::protobuf;
@@ -20,6 +20,7 @@ using namespace std;
 #define ASSERT_TRUE(x, s) if (!x) { printf("%s func [%s] \n", s, __FUNCTION__); abort(); }
 
 const char* outfile = "outfile.bin";
+const char* pbfile = "test-message.proto";
 
 void test_dynamic_compile();
 void test_read_message();
@@ -50,12 +51,14 @@ class MyImporter
 		~MyImporter()
 		{
 			delete _importer;
+            delete _factory;
 		}
 
 		void map_path(std::string vpath, std::string rpath)
 		{
 			_sourceTree.MapPath(vpath, rpath);
 			_importer = new Importer(&_sourceTree, &_compilerErr);
+            _factory = new DynamicMessageFactory(_importer->pool());
 		}
 
 		void import(std::string name)
@@ -63,7 +66,6 @@ class MyImporter
 			if (_importer) {
 
 				_importer->Import(name);
-				printf("== import name [%s] \n", name.c_str());
 			}
 
 		}
@@ -72,12 +74,15 @@ class MyImporter
 		Message* create_message(std::string name)
 		{
 
+            if (_importer == NULL || _factory == NULL) {
+                printf("error === create_message %s  map_path && import", name.c_str());
+                return NULL;
+            }
 			google::protobuf::Message* message = NULL;
 			const google::protobuf::Descriptor* descriptor = _importer->pool()->FindMessageTypeByName(name);
 			if (descriptor)
 			{
-				DynamicMessageFactory factory;
-				const Message* prototype = factory.GetPrototype(descriptor);
+				const Message* prototype = _factory->GetPrototype(descriptor);
 				if (prototype) {
 					message = prototype->New();
 				}
@@ -91,7 +96,7 @@ class MyImporter
 		Importer* 		_importer;
 		DiskSourceTree 	_sourceTree;
 		CompilerErrorCollector _compilerErr;
-
+        DynamicMessageFactory* _factory;
 
 };
 
@@ -102,7 +107,7 @@ void test_dynamic_compile()
 	MyImporter import;
 	import.map_path("", ".");
 
-	import.import("test-message.proto");
+	import.import(pbfile);
 
 
 
@@ -121,6 +126,7 @@ void test_dynamic_compile()
 		const Reflection* ref = request->GetReflection();
 		const FieldDescriptor* field = NULL;
 		const Descriptor* desc = request->GetDescriptor();
+		//const Descriptor* desc = import.get_descriptor("BaoBao.hello.Request");
 
 		ASSERT_TRUE(ref, "GetReflection --- fail ! \n");
 
@@ -138,45 +144,65 @@ void test_dynamic_compile()
 		ASSERT_TRUE(field, "find field by name (from) fail");
 		ref->SetString(request, field, "from==1");
 
-		fstream fs(outfile, ios::out | ios::trunc | ios::binary);
-		if (!request->SerializeToOstream(&fs)) {
+		fstream ofs(outfile, ios::out | ios::trunc | ios::binary);
+		if (!request->SerializeToOstream(&ofs)) {
 			printf("request SerializeToOstream fs fail! \n");
 		}
 
 		delete request;
 	}
 
+
 }
 
 void test_read_message()
 {
-	Message* request = create_message("BaoBao.hello.Request");
-	if (request) {
+
+	MyImporter import;
+    import.map_path("", ".");
+
+	import.import(pbfile);
 
 
-	}
+   if (true) {
+        fstream ifs(outfile, ios::in | ios::binary);
 
+	    Message* request = import.create_message("BaoBao.hello.Request");
+        if (!request) {
+            printf("import == create message fail!");
+            return ;
+        }
+
+        if (!request->ParseFromIstream(&ifs)) {
+            printf("request parse from istream == fail \n");
+            return ;
+        }
+
+		const Reflection* ref = request->GetReflection();
+		const FieldDescriptor* field = NULL;
+		const Descriptor* desc = request->GetDescriptor();
+
+		ASSERT_TRUE(ref, "GetReflection --- fail ! \n");
+
+		ASSERT_TRUE(desc, "GetDescriptor --- fail ! \n");
+
+		field = desc->FindFieldByName("name");
+		ASSERT_TRUE(field, "find filed by name (name) fail");
+		printf("find field by name (name) %s \n", ref->GetString(*request, field).c_str());
+
+		field = desc->FindFieldByName("addres");
+		ASSERT_TRUE(field, "find filed by name (addres) fail");
+        printf("find field by name (addres) %s \n", ref->GetString(*request, field).c_str());
+
+		field = desc->FindFieldByName("from");
+		ASSERT_TRUE(field, "find field by name (from) fail");
+        printf("find field by name (from) %s \n", ref->GetString(*request, field).c_str());
+        ref->SetString(request, field, "from==1");
+
+        delete request;
+    }
 
 }
-
-Message* create_message(std::string name)
-{
-	google::protobuf::Message* message = NULL;
-	const google::protobuf::Descriptor* descriptor =
-			google::protobuf::DescriptorPool::generated_pool()->FindMessageTypeByName(name);
-	if (descriptor)
-	{
-		const google::protobuf::Message* prototype =
-				google::protobuf::MessageFactory::generated_factory()->GetPrototype(descriptor);
-		if (prototype)
-		{
-			message = prototype->New();
-		}
-	}
-	return message;
-}
-
-
 
 
 
@@ -189,6 +215,7 @@ int main()
 	test_read_message();
 
 
+    printf("Done !== \n");
     return 0;
 }
 
