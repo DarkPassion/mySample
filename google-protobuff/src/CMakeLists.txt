@@ -6,7 +6,7 @@ set (CMAKE_BUILD_TYPE DEBUG)
 
 include_directories(${PROJECT_SOURCE_DIR})
 
-set(CMAKE_CXX_FLAGS "-D_CONSOLE -g -DUSE_GNUTLS -Wall -O2 -D_CONSOLE -pipe -Wno-invalid-offsetof -fcheck-new")
+set(CMAKE_CXX_FLAGS "-D_CONSOLE -g -DUSE_GNUTLS -Wall -O2 -D_CONSOLE -pipe -Wno-invalid-offsetof -fcheck-new -std=c++0x")
 
 file(GLOB SRC_FILES 
     ${PROJECT_SOURCE_DIR}/google/protobuf/*.cc
