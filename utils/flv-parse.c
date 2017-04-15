@@ -5,7 +5,8 @@
 
 int pkt_len = 9;
 int pkt_type = 0;
-int pkt_ts = 0;
+int pkt_iframe_ts = 0;
+int pkt_curr_ts = 0;
 int pkt_frame = 0;
 
 int read_flv_header(FILE* f);
@@ -46,12 +47,12 @@ int read_flv_tag_header(FILE* f)
     pkt_len = (uint32_t)((uint8_t)(buf[5]) << 16 | (uint8_t)(buf[6]) << 8 | (uint8_t)(buf[7]));
     int ts = ((uint8_t)(buf[8]) << 16 | (uint8_t)(buf[9]) << 8 | (uint8_t)buf[10] | (uint8_t)(buf[11]) << 24);
 
-    if (pkt_ts > ts) {
+    if (pkt_curr_ts > ts) {
         printf("error pkt_ts > ts \n");
     }
 
-    pkt_ts = ts;
-    //printf(" flv tag header need len %d ts %d  type %d \n", pkt_len, pkt_ts, pkt_type);
+    pkt_curr_ts = ts;
+    //printf(" flv tag header need len %d ts %d  type %d \n", pkt_len, pkt_curr_ts, pkt_type);
 
 
     return 0;
@@ -78,8 +79,10 @@ int read_flv_tag_data(FILE* f)
     if (pkt_type == 0x09) {
 
         if (buf[0] == 0x17) {
-            printf("key frame %d %d %d \n", pkt_len, pkt_ts, pkt_frame);
+            float fps = pkt_curr_ts - pkt_iframe_ts > 0 ? (pkt_frame) * 1000.0/ (pkt_curr_ts - pkt_iframe_ts)  : 0.0f;
+            printf("key frame [pkt_len ts gop fps] %d %d %d %.2f\n", pkt_len, pkt_curr_ts, pkt_frame, fps);
             pkt_frame = 0;
+            pkt_iframe_ts = pkt_curr_ts;
         } else if (buf[0] == 0x27) {
             pkt_frame++;
         } else {
