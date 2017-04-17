@@ -8,17 +8,23 @@
 
 
 
-HANDLE_AACENCODER aac_encode_init();
+HANDLE_AACENCODER aac_encode_init(int he_aac);
 void aac_encode_close(HANDLE_AACENCODER* handle);
 int encode_aac(HANDLE_AACENCODER handle, uint8_t* indata, int inlen, uint8_t*outdata, int* outlen);
 
+HANDLE_AACDECODER aac_decode_init();
+void aac_decode_close(HANDLE_AACDECODER handle);
+int decode_aac(HANDLE_AACDECODER handle, uint8_t* indata, int inlen, uint8_t*outdata, int* outlen);
 
-HANDLE_AACENCODER aac_encode_init()
+void fill_random_value(uint8_t* indata, int len);
+void write_file(uint8_t* data, int len, const char* name);
+
+HANDLE_AACENCODER aac_encode_init(int he_aac)
 {
 
     HANDLE_AACENCODER encoder = NULL;
 
-    AACENC_ERROR error = aacEncOpen(&encoder, 0, 1);
+    AACENC_ERROR error = aacEncOpen(&encoder, 0, 2);
     if (error != AACENC_OK) {
         printf("aacEncOpen error ! \n");
         return NULL;
@@ -26,6 +32,10 @@ HANDLE_AACENCODER aac_encode_init()
 
 
     int aot = 2;
+    if (he_aac) {
+        aot = 5;
+    }
+
     error = aacEncoder_SetParam(encoder, AACENC_AOT, aot);
     if (error != AACENC_OK) {
         printf("aacEncoder_SetParam profile error ! \n");
@@ -33,19 +43,32 @@ HANDLE_AACENCODER aac_encode_init()
     }
 
     int sample_rate = 44100;
+    int sce = 1;
+    int cpe = 0;
+    int kbps = ((96*sce + 128*cpe) * sample_rate / 44);
+    if (he_aac) {
+        kbps = kbps / 2;
+    }
+
     error = aacEncoder_SetParam(encoder, AACENC_SAMPLERATE, sample_rate);
     if (error != AACENC_OK) {
         printf("aacEncoder_SetParam rate error ! \n");
         return NULL;
     }
 
-    error = aacEncoder_SetParam(encoder, AACENC_CHANNELMODE, MODE_1);
+    CHANNEL_MODE mode = MODE_1;
+    error = aacEncoder_SetParam(encoder, AACENC_CHANNELMODE, mode);
     if (error != AACENC_OK) {
         printf("aacEncoder_SetParam channel error ! \n");
         return NULL;
     }
 
-    int kbps = 64*1024;
+    error = aacEncoder_SetParam(encoder, AACENC_CHANNELORDER, 1);
+    if (error != AACENC_OK) {
+        printf("aacEncoder_SetParam AACENC_CHANNELORDER error ! \n");
+        return NULL;
+    }
+
     error = aacEncoder_SetParam(encoder, AACENC_BITRATE, kbps);
     if (error != AACENC_OK) {
         printf("aacEncoder_SetParam bitrate error ! \n");
@@ -55,6 +78,12 @@ HANDLE_AACENCODER aac_encode_init()
     error = aacEncoder_SetParam(encoder, AACENC_TRANSMUX, 2);
     if (error != AACENC_OK) {
         printf("aacEncoder_SetParam transmux error ! \n");
+        return NULL;
+    }
+
+    error = aacEncoder_SetParam(encoder, AACENC_SIGNALING_MODE, 0);
+    if (error != AACENC_OK) {
+        printf("aacEncoder_SetParam AACENC_SIGNALING_MODE error ! \n");
         return NULL;
     }
 
@@ -134,24 +163,111 @@ int encode_aac(HANDLE_AACENCODER handle, uint8_t* indata, int inlen, uint8_t*out
     for (int i = 0; i < 7; i++) {
         printf(" %02x ", outdata[i] & 0xff);
     }
-
 #endif
 
     return 0;
 }
 
-int main()
+HANDLE_AACDECODER aac_decode_init()
 {
 
-    HANDLE_AACENCODER handle = aac_encode_init();
+    HANDLE_AACDECODER handle = NULL;
+    handle = aacDecoder_Open(TT_MP4_ADTS, 1);
 
-    uint8_t indata[2048];
-    int inlen = 2048;
-    uint8_t outdata[2048] = {0};
-    int outlen = 2048;
-    encode_aac(handle, indata, inlen, outdata, &outlen);
+    return handle;
+}
 
-    aac_encode_close(&handle);
 
+void aac_decode_close(HANDLE_AACDECODER handle)
+{
+    aacDecoder_Close(handle);
+}
+
+
+int decode_aac(HANDLE_AACDECODER handle, uint8_t* indata, int inlen, uint8_t*outdata, int* outlen)
+{
+
+    AAC_DECODER_ERROR error;
+    UINT valid = inlen;
+    error = aacDecoder_Fill(handle, &indata, (unsigned int*)&inlen, &valid);
+    if (error != AAC_DEC_OK) {
+        printf("aacDecoder_Fill error ! \n");
+        return -1;
+    }
+
+    error = aacDecoder_DecodeFrame(handle, (short*)outdata, *outlen, 0);
+    if (error == AAC_DEC_NOT_ENOUGH_BITS) {
+        printf("aacDecoder_DecodeFrame == error == 0! \n");
+        return -1;
+    }
+
+    if (error != AAC_DEC_OK) {
+        printf("aacDecoder_DecodeFrame == error == 1! \n");
+        return -1;
+    }
+
+    CStreamInfo *info = aacDecoder_GetStreamInfo(handle);
+    printf("decode aac %d \n", info->frameSize*2);
+    return 0;
+}
+
+
+
+void fill_random_value(uint8_t* indata, int len)
+{
+    int i = 0;
+    while (i < len) {
+        int val = rand();
+
+        indata[i] = val&0xff;
+        i++;
+    }
+}
+
+
+void write_file(uint8_t* data, int len, const char* name)
+{
+    FILE* f = fopen(name, "wb");
+    if (f) {
+        int nwrite = fwrite(data, len, 1, f);
+        if (nwrite == 0) {
+            printf("write to file fwrite error ! \n");
+        }
+        fclose(f);
+    }
+}
+
+int main()
+{
+    srand(131);
+
+    //HANDLE_AACENCODER enc = aac_encode_init(0);
+    HANDLE_AACENCODER enc = aac_encode_init(1);
+    HANDLE_AACDECODER dec = aac_decode_init();
+
+    for (int i = 0; i < 1; i++) {
+        uint8_t indata[8192];
+        int inlen = 8192;
+        uint8_t outdata[2048] = {0};
+        int outlen = 2048;
+
+        fill_random_value(indata, inlen);
+
+        int ret = encode_aac(enc, indata, inlen, outdata, &outlen);
+
+       write_file(outdata, outlen, "123.aac");
+        if (ret == 0 && 0) {
+            uint8_t tmp_data[2048];
+            int tmp_len = 2048;
+            ret = decode_aac(dec, outdata, outlen, tmp_data, &tmp_len);
+            if (ret == 0 && tmp_len > 0) {
+                printf("decode aac succ %d \n", tmp_len);
+            }
+        }
+
+    }
+
+    aac_encode_close(&enc);
+    aac_decode_close(dec);
     return 0;
 }
