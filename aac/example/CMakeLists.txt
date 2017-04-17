@@ -6,6 +6,8 @@ set (CMAKE_BUILD_TYPE DEBUG)
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 include_directories(${PROJECT_SOURCE_DIR})
+link_directories(${PROJECT_SOURCE_DIR}/libs)
+link_libraries(Fdk-aac.a)
 
 set(CMAKE_CXX_FLAGS "-D_CONSOLE -g -Wall -O0  -Wno-sequence-point -Wno-extra -std=c++98")
 
