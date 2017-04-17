@@ -4,23 +4,21 @@
 #include <stdint.h>
 
 #define MAX_FRAMES 2<<20
+#define MAX_BUFF_LEN 256
 
-
-typedef struct pkt_frame
-{
+typedef struct pkt_frame {
     int pkt_type;
     int pkt_pts;
     int pkt_len;
     int pkt_is_iframe;
-    char pkt_sps_buf[256];
+    char pkt_sps_buf[MAX_BUFF_LEN];
     int pkt_sps_len;
-    char pkt_pps_buf[256];
+    char pkt_pps_buf[MAX_BUFF_LEN];
     int pkt_pps_len;
 } pkt_frame_t;
 
 
-typedef struct flv_context
-{
+typedef struct flv_context {
     FILE* file;
     pkt_frame_t* pkts[MAX_FRAMES];
     int reserved_len;
@@ -29,23 +27,20 @@ typedef struct flv_context
 
 
 
-pkt_frame_t* alloc_pkt_frame()
-{
+pkt_frame_t* alloc_pkt_frame() {
     pkt_frame_t* frame = (pkt_frame_t*)malloc(sizeof(pkt_frame_t));
     memset(frame, 0, sizeof(pkt_frame_t));
     return frame;
 }
 
 
-flv_context_t* alloc_flv_context()
-{
+flv_context_t* alloc_flv_context() {
     flv_context_t * ctx = (flv_context_t*)malloc(sizeof(flv_context_t));
     memset(ctx, 0, sizeof(flv_context_t));
     return ctx;
 }
 
-void free_flv_context(flv_context_t* flv)
-{
+void free_flv_context(flv_context_t* flv) {
     for (int i = 0; i < flv->pkt_index; i++) {
         if (flv->pkts[i]) {
             free(flv->pkts[i]);
@@ -55,8 +50,7 @@ void free_flv_context(flv_context_t* flv)
 }
 
 
-pkt_frame_t* flv_context_get_frame(flv_context_t* ctx, int is_alloc)
-{
+pkt_frame_t* flv_context_get_frame(flv_context_t* ctx, int is_alloc) {
     if (is_alloc) {
         pkt_frame_t* frame = alloc_pkt_frame();
         if (ctx->pkt_index >= 0 && ctx->pkt_index < MAX_FRAMES) {
@@ -73,14 +67,14 @@ pkt_frame_t* flv_context_get_frame(flv_context_t* ctx, int is_alloc)
     return NULL;
 }
 
+void hexDump (char *desc, void *addr, int len);
 void process_flv_file(const char* name);
 int read_flv_header(flv_context_t* c);
 int read_flv_tag_header(flv_context_t* c);
 int read_flv_tag_data(flv_context_t* c);
 void dump_flv_context(flv_context_t* c);
 
-int read_flv_header(flv_context_t* ctx)
-{
+int read_flv_header(flv_context_t* ctx) {
 
     ctx->reserved_len = 9;
     char buf[64] = {0};
@@ -97,8 +91,7 @@ int read_flv_header(flv_context_t* ctx)
     return 0;
 }
 
-int read_flv_tag_header(flv_context_t* ctx)
-{
+int read_flv_tag_header(flv_context_t* ctx) {
 
     const int hds = 15;
     char buf[hds] = {0};
@@ -121,8 +114,7 @@ int read_flv_tag_header(flv_context_t* ctx)
 }
 
 
-int read_flv_tag_data(flv_context_t* ctx)
-{
+int read_flv_tag_data(flv_context_t* ctx) {
     if (ctx->reserved_len == 0) {
         printf("error need_len == 0 \n");
         return -1;
@@ -149,8 +141,26 @@ int read_flv_tag_data(flv_context_t* ctx)
 
         if (buf[0] == 0x17) {
             frame->pkt_is_iframe = 1;
-       } else if (buf[0] == 0x27) {
-           frame->pkt_is_iframe = 0;
+            if (buf[1] == 0x00) {
+                // sequence header
+                hexDump("sequence header", buf, frame->pkt_len);
+                uint8_t* sps = (uint8_t*)(buf + 11);
+                frame->pkt_sps_len = sps[0] << 8 | sps[1];
+                if (frame->pkt_sps_len > MAX_BUFF_LEN -1) {
+                    printf("sps buff too long! maybe error frame->pkt_sps_len! \n");
+                }
+                memcpy(frame->pkt_sps_buf, sps + 2, frame->pkt_sps_len);
+
+                uint8_t* pps = (uint8_t*)(sps + 2 + frame->pkt_sps_len + 1);
+                frame->pkt_pps_len =(uint8_t) pps[0] << 8 | (uint8_t)pps[1];
+                if (frame->pkt_pps_len > MAX_BUFF_LEN -1) {
+                    printf("pps buff too long! maybe error frame->pkt_pps_len! \n");
+                }
+                memcpy(frame->pkt_pps_buf, pps + 2, frame->pkt_pps_len);
+                printf("got sequence header == %d %d \n", frame->pkt_sps_len, frame->pkt_pps_len);
+            }
+        } else if (buf[0] == 0x27) {
+            frame->pkt_is_iframe = 0;
         } else {
             printf("flv vdieo frame type %x \n", buf[0]);
         }
@@ -162,8 +172,7 @@ int read_flv_tag_data(flv_context_t* ctx)
     return 0;
 }
 
-void process_flv_file(const char* name)
-{
+void process_flv_file(const char* name) {
     flv_context_t* ctx = alloc_flv_context();
     char buff[1024] = {0};
 
@@ -202,8 +211,7 @@ void process_flv_file(const char* name)
     free_flv_context(ctx);
 }
 
-void dump_flv_context(flv_context_t* ctx)
-{
+void dump_flv_context(flv_context_t* ctx) {
     printf("dump flv context ! \n");
 
     if (!ctx) {
@@ -214,8 +222,7 @@ void dump_flv_context(flv_context_t* ctx)
     int pkt_pframe_pts = 0;
     int pkt_len = 0;
     int pkt_pframes = 0;
-    for (int i = 0; i < ctx->pkt_index; i++)
-    {
+    for (int i = 0; i < ctx->pkt_index; i++) {
         pkt_frame_t* frame = ctx->pkts[i];
 
         //printf("== dump flv context frame %p %d %d \n", frame, i, ctx->pkt_index);
@@ -239,8 +246,60 @@ void dump_flv_context(flv_context_t* ctx)
     }
 }
 
-int main(int argc, char** argv)
-{
+
+void hexDump (char *desc, void *addr, int len) {
+    int i;
+    unsigned char buff[17];
+    unsigned char *pc = (unsigned char*)addr;
+
+    // Output description if given.
+    if (desc != NULL)
+        printf ("%s:\n", desc);
+
+    if (len == 0) {
+        printf("  ZERO LENGTH\n");
+        return;
+    }
+    if (len < 0) {
+        printf("  NEGATIVE LENGTH: %i\n",len);
+        return;
+    }
+
+    // Process every byte in the data.
+    for (i = 0; i < len; i++) {
+        // Multiple of 16 means new line (with line offset).
+
+        if ((i % 16) == 0) {
+            // Just don't print ASCII for the zeroth line.
+            if (i != 0)
+                printf ("  %s\n", buff);
+
+            // Output the offset.
+            printf ("  %04x ", i);
+        }
+
+        // Now the hex code for the specific character.
+        printf (" %02x", pc[i]);
+
+        // And store a printable ASCII character for later.
+        if ((pc[i] < 0x20) || (pc[i] > 0x7e))
+            buff[i % 16] = '.';
+        else
+            buff[i % 16] = pc[i];
+        buff[(i % 16) + 1] = '\0';
+    }
+
+    // Pad out last line if not exactly 16 characters.
+    while ((i % 16) != 0) {
+        printf ("   ");
+        i++;
+    }
+
+    // And print the final ASCII bit.
+    printf ("  %s\n", buff);
+}
+
+int main(int argc, char** argv) {
 
     if (argc < 2) {
         printf("error %s *.flv \n", argv[0]);
