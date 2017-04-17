@@ -73,6 +73,8 @@ int read_flv_header(flv_context_t* c);
 int read_flv_tag_header(flv_context_t* c);
 int read_flv_tag_data(flv_context_t* c);
 void dump_flv_context(flv_context_t* c);
+uint8_t set_aac_configure(int rate, int channels);
+void get_aac_configure(uint8_t c);
 
 int read_flv_header(flv_context_t* ctx) {
 
@@ -143,7 +145,7 @@ int read_flv_tag_data(flv_context_t* ctx) {
             frame->pkt_is_iframe = 1;
             if (buf[1] == 0x00) {
                 // sequence header
-                hexDump("sequence header", buf, frame->pkt_len);
+                hexDump("H264 sequence header", buf, frame->pkt_len);
                 uint8_t* sps = (uint8_t*)(buf + 11);
                 frame->pkt_sps_len = sps[0] << 8 | sps[1];
                 if (frame->pkt_sps_len > MAX_BUFF_LEN -1) {
@@ -158,13 +160,43 @@ int read_flv_tag_data(flv_context_t* ctx) {
                 }
                 memcpy(frame->pkt_pps_buf, pps + 2, frame->pkt_pps_len);
                 printf("got sequence header == %d %d \n", frame->pkt_sps_len, frame->pkt_pps_len);
-            }
+			} else if (buf[1] == 0x01) {
+				uint8_t* data = (uint8_t*) buf + 5;
+				int len = frame->pkt_len - 5;
+				int i = 0;
+				while (i < len) {
+					uint32_t l = data[i + 0] << 24 | data[i + 1] << 16 | data[i + 2] << 8 | data[i + 3];
+					printf("== keyframes %d %d %d %02x \n", i, l, len, data[i+4]);
+					i += (l + 4);
+				}
+			}
         } else if (buf[0] == 0x27) {
             frame->pkt_is_iframe = 0;
+			if (buf[1] == 0x01) {
+				uint8_t* data = (uint8_t*) buf + 5;
+				int len = frame->pkt_len - 5;
+				int i = 0;
+				while (i < len) {
+					uint32_t l = data[i + 0] << 24 | data[i + 1] << 16 | data[i + 2] << 8 | data[i + 3];
+					// printf("== pframe %d %d %d %02x \n", i, l, len, data[i+4]);
+					i += (l + 4);
+				}
+			}
         } else {
             printf("flv vdieo frame type %x \n", buf[0]);
         }
     } else if (frame->pkt_type == 0x08) {
+		if (buf[1] == 0x00) {
+			// AAC sequence header
+
+            hexDump("AAC sequence header", buf, frame->pkt_len);
+			printf("AAC sequence header %02x  %02x ! \n", buf[0] & 0xff,set_aac_configure(44100, 2));
+			uint8_t* p = (uint8_t*)buf;
+			get_aac_configure(p[0]);
+
+		} else if (buf[1] == 0x01) {
+
+		}
 
     }
 
@@ -244,6 +276,28 @@ void dump_flv_context(flv_context_t* ctx) {
 
         }
     }
+}
+
+uint8_t set_aac_configure(int rate, int channels) {
+	static int chan[4] = {5500, 11000, 22000, 44100};
+	int chan_index = 0;
+	for (int i = 0; i < 4; i++) {
+		if (chan[i] == rate) {
+			chan_index = i;
+			break;
+		}
+	}
+	uint8_t conf = 0xa0 | (chan_index << 2) | 0x02 | (channels -1);
+	return conf;
+}
+
+void get_aac_configure(uint8_t c) {
+	static int chan[4] = {5500, 11000, 22000, 44100};
+	static int sound[2] = {8, 16};
+	int chan_index = (c & 0x0c)>>2;
+	int sound_index = (c & 0x02) >> 1;
+	int sound_type = c & 0x01;
+	printf(" get_aac_configure %02x %d %d %d \n", c, chan[chan_index], sound[sound_index], sound_type + 1);
 }
 
 
