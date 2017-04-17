@@ -82,7 +82,6 @@ uint8_t set_aac_configure(int rate, int channels);
 void get_aac_configure(uint8_t c);
 
 int read_flv_header(flv_context_t* ctx) {
-
     ctx->reserved_len = 9;
     char buf[64] = {0};
     int nread = fread(buf, ctx->reserved_len, 1, ctx->file);
@@ -99,10 +98,9 @@ int read_flv_header(flv_context_t* ctx) {
 }
 
 int read_flv_tag_header(flv_context_t* ctx) {
-
-    const int hds = 15;
-    char buf[hds] = {0};
-    int nread = fread(buf, hds, 1, ctx->file);
+	ctx->reserved_len = 15;
+    char buf[64] = {0};
+    int nread = fread(buf, ctx->reserved_len, 1, ctx->file);
     if (nread == 0) {
         printf("fread EOF \n");
         return -1;
@@ -115,7 +113,6 @@ int read_flv_tag_header(flv_context_t* ctx) {
     ctx->reserved_len = (uint32_t)((uint8_t)(buf[5]) << 16 | (uint8_t)(buf[6]) << 8 | (uint8_t)(buf[7]));
 
     // printf(" flv tag header need len %d ts %d  type %d \n", ctx->reserved_len, frame->pkt_pts, frame->pkt_type);
-
 
     return 0;
 }
@@ -205,6 +202,7 @@ int read_flv_tag_data(flv_context_t* ctx) {
 
     }
 
+	ctx->reserved_len = 0;
     free(buf);
     return 0;
 }
