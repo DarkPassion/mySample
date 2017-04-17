@@ -5,7 +5,7 @@
 
 
 // https://github.com/rainfly123/flvmuxer/blob/master/flv.c
-// gcc flv-parse.c -p flv-parse.out
+// gcc flv-parse.c -o flv-parse.out
 
 
 #define MAX_FRAMES 2<<20
