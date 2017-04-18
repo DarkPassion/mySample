@@ -290,8 +290,9 @@ void parse_adts(uint8_t* data, int len)
 
     uint8_t profile = (((data[2] &0xc0) >> 6) -1);
     uint8_t fequency = ((data[2]&0x3c)>>2);
+    uint8_t channel = ((data[2]&0x01)<<2)|((data[3]&0xc0)>>6);
 
-    printf("parse adts profile %d fequency %d \n", profile, fequency);
+    printf("parse adts profile %d fequency %d channel %d \n", profile, fequency, channel);
 }
 
 int main()
