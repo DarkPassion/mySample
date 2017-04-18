@@ -1,8 +1,0 @@
-
-message messageHeader {
-    required int64 cmd = 1;
-    required string msg_name = 2;
- }
-
-
-
