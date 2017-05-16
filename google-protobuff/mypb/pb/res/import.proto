@@ -1,5 +1,0 @@
-import "message1.proto";
-import "message2.proto";
-import "message3.proto";
-import "message4.proto";
-import "message.proto";
